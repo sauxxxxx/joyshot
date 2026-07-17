@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:https": "next dev --experimental-https --experimental-https-key ../../certificates/lan-key.pem --experimental-https-cert ../../certificates/lan.pem",
+    "prebuild": "npm run build -w @photobooth/shared",
     "build": "next build",
     "start": "next start",
     "lint": "tsc --noEmit",
