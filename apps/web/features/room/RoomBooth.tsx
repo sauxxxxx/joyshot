@@ -7,6 +7,7 @@ import { RoomVideoGrid } from "@/components/room/RoomVideoGrid";
 import { captureFrame, dataUrlToArrayBuffer } from "@/features/camera/captureFrame";
 import { useCamera } from "@/features/camera/useCamera";
 import { drawCombinedStrip } from "@/features/strip/drawCombinedStrip";
+import { BoothSettingsPicker } from "@/features/strip/BoothSettingsPicker";
 import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
 import { usePeerVideo } from "@/features/webrtc/usePeerVideo";
@@ -74,7 +75,7 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
     }
     const updateCountdown = () => {
       const remaining = schedule.captureAt - (Date.now() + roomState.serverOffset);
-      setCountdown(remaining > 0 ? Math.min(3, Math.max(1, Math.ceil(remaining / 1000))) : null);
+      setCountdown(remaining > 0 ? Math.max(1, Math.ceil(remaining / 1000)) : null);
     };
     updateCountdown();
     const interval = window.setInterval(updateCountdown, 100);
@@ -102,11 +103,11 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
     if (!roomState.completion || completePairs.length !== 4) return;
     setStrip(null);
     let active = true;
-    void drawCombinedStrip(completePairs, theme)
+    void drawCombinedStrip(completePairs, theme, roomState.room?.settings.layout ?? "strip")
       .then((result) => active && setStrip(result))
       .catch((error) => active && setRenderError(error instanceof Error ? error.message : "The strip could not be rendered."));
     return () => { active = false; };
-  }, [completePairs, roomState.completion, theme]);
+  }, [completePairs, roomState.completion, roomState.room?.settings.layout, theme]);
 
   const copyRoom = useCallback(async () => {
     await navigator.clipboard.writeText(`${window.location.origin}/room/${roomCode}`);
@@ -171,6 +172,11 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
 
       <div className={styles.progressRow} aria-label={`${completePairs.length} of 4 photo pairs received`}>
         {[0, 1, 2, 3].map((index) => <div className={pairs[index] ? styles.pairComplete : ""} key={index}>{pairs[index] ? <Check size={17} /> : index + 1}<span>Pair {index + 1}</span></div>)}
+      </div>
+
+      <div className={styles.boothSettings}>
+        <div><strong>Booth setup</strong><span>{isHost ? "Your choices sync to your partner" : "The host controls these options"}</span></div>
+        <BoothSettingsPicker disabled={!isHost || sessionActive} settings={roomState.room.settings} onChange={roomState.updateSettings} />
       </div>
 
       <aside className={styles.controlBar}>

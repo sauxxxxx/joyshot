@@ -22,6 +22,7 @@ export class RoomRepository {
       status: "waiting",
       hostParticipantId: participant.id,
       participants: new Map([[participant.id, participant]]),
+      settings: { countdownSeconds: 5, layout: "strip" },
       createdAt: Date.now(),
       expiresAt: Date.now() + this.roomTtlMs,
     };
@@ -118,6 +119,7 @@ export class RoomRepository {
       participants: [...room.participants.values()]
         .sort((a, b) => (a.role === "host" ? -1 : b.role === "host" ? 1 : a.joinedAt - b.joinedAt))
         .map<ParticipantState>(({ id, role, connected, cameraReady, ready }) => ({ id, role, connected, cameraReady, ready })),
+      settings: room.settings,
       session: room.session
         ? { id: room.session.id, status: room.session.status, currentShotIndex: room.session.currentShotIndex, shotCount: room.session.shotCount }
         : undefined,

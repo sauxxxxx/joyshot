@@ -17,6 +17,17 @@ export const roomPresenceSchema = z.object({
   ready: z.boolean().optional(),
 });
 
+export const boothSettingsSchema = z.object({
+  countdownSeconds: z.union([z.literal(3), z.literal(5), z.literal(10)]),
+  layout: z.enum(["strip", "grid", "postcard", "film"]),
+});
+
+export const roomSettingsSchema = boothSettingsSchema.extend({ roomCode: roomCodeSchema });
+
+export type CountdownSeconds = 3 | 5 | 10;
+export type PhotoLayoutId = "strip" | "grid" | "postcard" | "film";
+export interface BoothSettings { countdownSeconds: CountdownSeconds; layout: PhotoLayoutId; }
+
 export type ParticipantRole = "host" | "guest";
 export type RoomStatus =
   | "waiting"
@@ -46,6 +57,7 @@ export interface RoomState {
   status: RoomStatus;
   hostParticipantId: string;
   participants: ParticipantState[];
+  settings: BoothSettings;
   session?: PublicSessionState;
 }
 

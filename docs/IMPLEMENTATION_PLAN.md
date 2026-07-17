@@ -531,7 +531,6 @@ ROOM_TTL_MINUTES=30
 COMPLETED_ROOM_TTL_MINUTES=10
 MAX_IMAGE_BYTES=1048576
 CAPTURE_COUNT=4
-COUNTDOWN_SECONDS=3
 CAPTURE_INTERVAL_SECONDS=5
 
 NEXT_PUBLIC_STUN_URL=stun:stun.example.com:3478
@@ -539,6 +538,8 @@ NEXT_PUBLIC_TURN_URL=turn:turn.example.com:3478
 NEXT_PUBLIC_TURN_USERNAME=
 NEXT_PUBLIC_TURN_CREDENTIAL=
 ```
+
+The countdown is selected in the booth UI (3, 5, or 10 seconds) and synchronized by the realtime room server.
 
 TURN credentials should not be committed. A later version should issue temporary credentials from the server.
 

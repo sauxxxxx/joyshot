@@ -5,6 +5,7 @@ import {
   roomCodeSchema,
   roomJoinSchema,
   roomPresenceSchema,
+  roomSettingsSchema,
   sessionStartSchema,
   type ClientToServerEvents,
   type EventResult,
@@ -61,6 +62,22 @@ export function registerSocketHandlers(
     if (parsed.data.ready !== undefined) found.participant.ready = parsed.data.ready;
     if (!found.participant.cameraReady) found.participant.ready = false;
     rooms.refreshStatus(found.room);
+    const state = rooms.publicState(found.room);
+    io.to(found.room.code).emit("room:state", state);
+    callback({ ok: true, data: state });
+  });
+
+  socket.on("room:settings", (payload, callback) => {
+    const parsed = roomSettingsSchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) {
+      return callback(failure("NOT_IN_ROOM", "Join the room before changing booth settings."));
+    }
+    if (found.participant.id !== found.room.hostParticipantId) {
+      return callback(failure("HOST_ONLY", "Only the host can change booth settings."));
+    }
+    if (found.room.session) return callback(failure("SESSION_ACTIVE", "Reset the booth before changing settings."));
+    found.room.settings = { countdownSeconds: parsed.data.countdownSeconds, layout: parsed.data.layout };
     const state = rooms.publicState(found.room);
     io.to(found.room.code).emit("room:state", state);
     callback({ ok: true, data: state });

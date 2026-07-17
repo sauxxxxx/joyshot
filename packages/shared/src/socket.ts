@@ -1,5 +1,5 @@
 import type { CapturePair, CaptureSchedule, SessionComplete } from "./session.js";
-import type { EventResult, Membership, RoomState } from "./room.js";
+import type { BoothSettings, EventResult, Membership, RoomState } from "./room.js";
 import type {
   ForwardedSignalingMessage,
   IceCandidateData,
@@ -17,6 +17,10 @@ export interface ClientToServerEvents {
   "room:leave": (payload: { roomCode: string }) => void;
   "participant:presence": (
     payload: { roomCode: string; cameraReady?: boolean; ready?: boolean },
+    callback: (result: EventResult<RoomState>) => void,
+  ) => void;
+  "room:settings": (
+    payload: BoothSettings & { roomCode: string },
     callback: (result: EventResult<RoomState>) => void,
   ) => void;
   "session:start": (
@@ -57,6 +61,7 @@ export const socketEvents = {
   roomJoin: "room:join",
   roomState: "room:state",
   participantPresence: "participant:presence",
+  roomSettings: "room:settings",
   sessionStart: "session:start",
   sessionReset: "session:reset",
   captureScheduled: "capture:scheduled",

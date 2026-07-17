@@ -1,13 +1,7 @@
+import type { PhotoLayoutId } from "@photobooth/shared";
 import { stripThemes, type StripThemeId } from "./stripThemes";
 import { drawThemeMotif } from "./drawThemeMotif";
-
-const WIDTH = 900;
-const SIDE_PADDING = 56;
-const TOP_HEIGHT = 150;
-const PHOTO_WIDTH = WIDTH - SIDE_PADDING * 2;
-const PHOTO_HEIGHT = 591;
-const PHOTO_GAP = 24;
-const FOOTER_HEIGHT = 118;
+import { calculatePhotoLayout, drawImageCover } from "./photoLayouts";
 
 function loadImage(source: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -32,52 +26,52 @@ function drawHeart(context: CanvasRenderingContext2D, x: number, y: number, size
   context.restore();
 }
 
-export async function drawSoloStrip(photos: string[], themeId: StripThemeId) {
+export async function drawSoloStrip(photos: string[], themeId: StripThemeId, layoutId: PhotoLayoutId = "strip") {
   if (photos.length !== 4) throw new Error("Four photos are required to build the strip.");
 
   const theme = stripThemes[themeId];
-  const height = TOP_HEIGHT + PHOTO_HEIGHT * photos.length + PHOTO_GAP * 3 + FOOTER_HEIGHT;
+  const layout = calculatePhotoLayout(4, layoutId);
   const canvas = document.createElement("canvas");
-  canvas.width = WIDTH;
-  canvas.height = height;
+  canvas.width = layout.width;
+  canvas.height = layout.height;
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Your browser could not prepare the photo strip.");
 
   context.fillStyle = theme.background;
-  context.fillRect(0, 0, WIDTH, height);
-  drawThemeMotif(context, WIDTH, height, theme);
+  context.fillRect(0, 0, layout.width, layout.height);
+  drawThemeMotif(context, layout.width, layout.height, theme);
 
   context.fillStyle = theme.foreground;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.font = "700 50px Fredoka, Trebuchet MS, sans-serif";
-  context.fillText("JoyShot", WIDTH / 2, 66);
+  context.fillText("JoyShot", layout.width / 2, 66);
   context.font = "700 20px Nunito, Segoe UI, sans-serif";
-  context.fillText("FOUR LITTLE MOMENTS, ONE KEEPSAKE", WIDTH / 2, 111);
+  context.fillText("FOUR LITTLE MOMENTS, ONE KEEPSAKE", layout.width / 2, 111);
 
   const images = await Promise.all(photos.map(loadImage));
   images.forEach((image, index) => {
-    const y = TOP_HEIGHT + index * (PHOTO_HEIGHT + PHOTO_GAP);
+    const frame = layout.frames[index];
     context.fillStyle = theme.panel;
-    context.fillRect(SIDE_PADDING - 8, y - 8, PHOTO_WIDTH + 16, PHOTO_HEIGHT + 16);
-    context.drawImage(image, SIDE_PADDING, y, PHOTO_WIDTH, PHOTO_HEIGHT);
+    context.fillRect(frame.x - 8, frame.y - 8, frame.width + 16, frame.height + 16);
+    drawImageCover(context, image, frame);
 
     context.fillStyle = theme.accent;
     context.beginPath();
-    context.arc(WIDTH - SIDE_PADDING - 28, y + 30, 22, 0, Math.PI * 2);
+    context.arc(frame.x + frame.width - 28, frame.y + 30, 22, 0, Math.PI * 2);
     context.fill();
     context.fillStyle = theme.badgeForeground;
     context.font = "800 20px Nunito, Segoe UI, sans-serif";
-    context.fillText(String(index + 1), WIDTH - SIDE_PADDING - 28, y + 31);
+    context.fillText(String(index + 1), frame.x + frame.width - 28, frame.y + 31);
   });
 
   context.fillStyle = theme.foreground;
   context.font = "700 22px Nunito, Segoe UI, sans-serif";
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date());
-  context.fillText(date.toUpperCase(), WIDTH / 2, height - 56);
+  context.fillText(date.toUpperCase(), layout.width / 2, layout.height - 52);
   context.fillStyle = theme.accent;
-  drawHeart(context, SIDE_PADDING + 12, height - 76, 36);
-  drawHeart(context, WIDTH - SIDE_PADDING - 48, height - 76, 36);
+  drawHeart(context, 66, layout.height - 72, 36);
+  drawHeart(context, layout.width - 102, layout.height - 72, 36);
 
   return canvas.toDataURL("image/png");
 }

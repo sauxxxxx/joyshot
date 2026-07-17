@@ -1,0 +1,22 @@
+.settings { display: grid; gap: 18px; padding-block: 18px; }
+.settings fieldset { min-width: 0; border: 0; padding: 0; margin: 0; }
+.settings legend { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; font-size: .8rem; font-weight: 900; text-transform: uppercase; }
+.timerGrid, .layoutGrid { display: grid; gap: 8px; }
+.timerGrid { grid-template-columns: repeat(3, 1fr); }
+.layoutGrid { grid-template-columns: repeat(2, 1fr); }
+.choice { position: relative; display: flex; min-height: 58px; align-items: center; justify-content: center; flex-direction: column; gap: 2px; border: 2px solid var(--color-border); border-radius: 13px; padding: 8px; background: white; cursor: pointer; text-align: center; transition: 180ms ease; }
+.choice:hover { border-color: var(--color-secondary); }
+.choice:focus-within { outline: 3px solid var(--color-secondary); outline-offset: 2px; }
+.choice.selected { border-color: var(--color-secondary); background: var(--color-secondary-soft); }
+.choice:has(input:disabled) { cursor: not-allowed; opacity: .52; }
+.choice strong { font-size: .78rem; line-height: 1.15; }
+.choice small { color: var(--color-muted); font-size: .65rem; }
+.check { position: absolute; top: 5px; right: 5px; display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid var(--color-border); border-radius: 50%; background: white; color: var(--color-secondary); }
+.layoutPreview { display: grid; width: 58px; height: 38px; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 2px; border: 2px solid var(--color-foreground); border-radius: 5px; padding: 3px; background: #fff8f1; }
+.layoutPreview i { border-radius: 1px; background: var(--color-primary); }
+.layoutPreview[data-layout="strip"] { width: 28px; height: 46px; grid-template-columns: 1fr; grid-template-rows: repeat(4, 1fr); }
+.layoutPreview[data-layout="postcard"] { grid-template-columns: 1.5fr 1fr; grid-template-rows: repeat(3, 1fr); }
+.layoutPreview[data-layout="postcard"] i:first-child { grid-row: 1 / 4; }
+.layoutPreview[data-layout="film"] { width: 66px; height: 26px; grid-template-columns: repeat(4, 1fr); grid-template-rows: 1fr; border-style: dashed; }
+@media (min-width: 520px) { .layoutGrid { grid-template-columns: repeat(4, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .choice { transition: none; } }

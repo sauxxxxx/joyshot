@@ -1,12 +1,15 @@
 .grid {
   display: grid;
   gap: 18px;
+  max-width: 1040px;
+  margin-inline: auto;
 }
 
 .videoCard {
   position: relative;
   overflow: hidden;
   aspect-ratio: 4 / 3;
+  max-height: 390px;
   border: 2px solid var(--color-foreground);
   border-radius: 22px;
   background: var(--color-camera);

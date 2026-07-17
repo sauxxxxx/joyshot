@@ -1,11 +1,13 @@
 "use client";
 
+import type { BoothSettings } from "@photobooth/shared";
 import { Camera, Check, Download, LoaderCircle, RefreshCcw, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraPreview } from "@/components/camera/CameraPreview";
 import { captureFrame } from "@/features/camera/captureFrame";
 import { useCamera } from "@/features/camera/useCamera";
 import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
+import { BoothSettingsPicker } from "@/features/strip/BoothSettingsPicker";
 import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
 import styles from "./SoloBooth.module.css";
@@ -19,6 +21,7 @@ export function SoloBooth() {
   const { error: cameraError, start: startCamera, status: cameraStatus, stream } = useCamera();
   const [phase, setPhase] = useState<BoothPhase>("setup");
   const [theme, setTheme] = useState<StripThemeId>("classic");
+  const [settings, setSettings] = useState<BoothSettings>({ countdownSeconds: 5, layout: "strip" });
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -35,13 +38,13 @@ export function SoloBooth() {
     if (photos.length !== 4 || phase !== "complete") return;
     let active = true;
     setStrip(null);
-    void drawSoloStrip(photos, theme)
+    void drawSoloStrip(photos, theme, settings.layout)
       .then((nextStrip) => active && setStrip(nextStrip))
       .catch(() => active && setSessionError("We could not redraw that theme. Try another one."));
     return () => {
       active = false;
     };
-  }, [photos, theme, phase]);
+  }, [photos, theme, settings.layout, phase]);
 
   const playTone = useCallback((frequency: number, duration: number) => {
     if (muted) return;
@@ -72,9 +75,9 @@ export function SoloBooth() {
       for (let shot = 0; shot < 4; shot += 1) {
         if (cancelledRef.current) return;
         setShotIndex(shot);
-        for (let count = 3; count >= 1; count -= 1) {
+        for (let count = settings.countdownSeconds; count >= 1; count -= 1) {
           setCountdown(count);
-          playTone(520 + (3 - count) * 90, 120);
+          if (count <= 3) playTone(520 + (3 - count) * 90, 120);
           await wait(1000);
           if (cancelledRef.current) return;
         }
@@ -89,7 +92,7 @@ export function SoloBooth() {
       }
 
       setPhase("processing");
-      const result = await drawSoloStrip(captures, theme);
+      const result = await drawSoloStrip(captures, theme, settings.layout);
       if (cancelledRef.current) return;
       setStrip(result);
       setPhase("complete");
@@ -97,7 +100,7 @@ export function SoloBooth() {
       setSessionError(captureError instanceof Error ? captureError.message : "The session could not be completed.");
       setPhase("setup");
     }
-  }, [cameraStatus, playTone, theme]);
+  }, [cameraStatus, playTone, settings, theme]);
 
   const reset = useCallback(() => {
     cancelledRef.current = true;
@@ -124,6 +127,7 @@ export function SoloBooth() {
           <h1 id="result-title">Your strip is ready.</h1>
           <p>Pick the frame that feels right, then save the full-resolution PNG to your device.</p>
           <StripThemePicker onChange={setTheme} value={theme} />
+          <BoothSettingsPicker settings={settings} onChange={setSettings} showTimer={false} />
           <div className={styles.resultActions}>
             <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}>
               {strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}
@@ -147,7 +151,7 @@ export function SoloBooth() {
       <div className={styles.copy}>
         <span className="eyebrow"><Camera size={17} /> Solo booth</span>
         <h1 id="booth-title">Four poses. One classic strip.</h1>
-        <p>Set your camera at eye level. We will count down from three before each photo.</p>
+        <p>Set your camera at eye level, choose your timer and layout, then get ready for four photos.</p>
       </div>
 
       <div className={styles.workspace}>
@@ -181,6 +185,7 @@ export function SoloBooth() {
             <div className={styles.checked}><span><ShieldCheck size={18} /> Local processing</span><Check size={18} /></div>
           </div>
           <StripThemePicker label="Pick your starting style" onChange={setTheme} value={theme} />
+          <BoothSettingsPicker settings={settings} onChange={setSettings} />
           {cameraStatus !== "ready" ? (
             <button className="button buttonPrimary" type="button" onClick={() => void startCamera()} disabled={cameraStatus === "requesting"}>
               {cameraStatus === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}

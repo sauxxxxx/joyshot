@@ -68,6 +68,12 @@ describe("two-person room socket flow", () => {
     await new Promise<void>((resolve) => {
       guest.emit("room:join", { roomCode: membership.room.code }, () => resolve());
     });
+    await new Promise<void>((resolve, reject) => {
+      host.emit("room:settings", { roomCode: membership.room.code, countdownSeconds: 3, layout: "grid" }, (result) => {
+        if (result.ok) resolve();
+        else reject(new Error(result.error.message));
+      });
+    });
     for (const client of [host, guest]) {
       await new Promise<void>((resolve) => {
         client.emit("participant:presence", { roomCode: membership.room.code, cameraReady: true, ready: true }, () => resolve());
@@ -82,6 +88,7 @@ describe("two-person room socket flow", () => {
     });
 
     expect(started).toBe(true);
+    expect(server.rooms.get(membership.room.code)?.settings).toEqual({ countdownSeconds: 3, layout: "grid" });
     const capture = await scheduled;
     expect(capture.shotIndex).toBe(0);
     await new Promise((resolve) => setTimeout(resolve, Math.max(0, capture.captureAt - Date.now()) + 50));

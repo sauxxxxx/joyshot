@@ -80,6 +80,11 @@
 .progressRow span { display: none; }
 .progressRow .pairComplete { border-style: solid; border-color: var(--color-success); background: #e4f6ed; color: var(--color-success); }
 
+.boothSettings { display: grid; gap: 12px; margin-bottom: 22px; border: 2px solid var(--color-border); border-radius: 20px; padding: 16px 18px; background: rgb(255 255 255 / 72%); }
+.boothSettings > div:first-child { display: flex; justify-content: space-between; gap: 12px; }
+.boothSettings > div:first-child span { color: var(--color-muted); font-size: .78rem; }
+.boothSettings > :global(section) { padding-block: 0; }
+
 .controlBar {
   display: grid;
   gap: 20px;
@@ -159,6 +164,7 @@
   .roomHeader { flex-direction: row; align-items: center; justify-content: space-between; }
   .progressRow span { display: inline; }
   .controlBar { grid-template-columns: minmax(300px, 1fr) minmax(300px, auto); align-items: center; }
+  .boothSettings { grid-template-columns: minmax(180px, .35fr) minmax(0, 1fr); align-items: center; }
 }
 
 @media (min-width: 900px) {

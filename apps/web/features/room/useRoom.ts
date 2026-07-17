@@ -1,6 +1,6 @@
 "use client";
 
-import type { CapturePair, CaptureSchedule, Membership, RoomState, SessionComplete } from "@photobooth/shared";
+import type { BoothSettings, CapturePair, CaptureSchedule, Membership, RoomState, SessionComplete } from "@photobooth/shared";
 import { useCallback, useEffect, useState } from "react";
 import { getSocket } from "@/lib/socket";
 import { clearMembership, readMembership, storeMembership } from "./membershipStorage";
@@ -99,6 +99,12 @@ export function useRoom(roomCode: string) {
     });
   }, [roomCode, socket]);
 
+  const updateSettings = useCallback((settings: BoothSettings) => {
+    socket.emit("room:settings", { roomCode: roomCode.toUpperCase(), ...settings }, (result) => {
+      if (!result.ok) setError(result.error.message);
+    });
+  }, [roomCode, socket]);
+
   const startSession = useCallback(() => new Promise<boolean>((resolve) => {
     setError(null);
     setCompletion(null);
@@ -127,5 +133,5 @@ export function useRoom(roomCode: string) {
     clearMembership(roomCode.toUpperCase());
   }, [roomCode, socket]);
 
-  return { completion, error, latestPair, leave, membership, resetSession, room, schedule, serverOffset, socket, startSession, status, submitCapture, updatePresence };
+  return { completion, error, latestPair, leave, membership, resetSession, room, schedule, serverOffset, socket, startSession, status, submitCapture, updatePresence, updateSettings };
 }

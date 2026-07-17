@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
   CAPTURE_COUNT,
-  COUNTDOWN_SECONDS,
   type ClientToServerEvents,
   type EventResult,
   type RoomState,
@@ -105,7 +104,7 @@ export class SessionCoordinator {
     room.status = "countdown";
     const shotIndex = session.currentShotIndex;
     const countdownStartsAt = Date.now() + 700;
-    const captureAt = countdownStartsAt + COUNTDOWN_SECONDS * 1000;
+    const captureAt = countdownStartsAt + room.settings.countdownSeconds * 1000;
     this.broadcastState(room);
     this.io.to(room.code).emit("capture:scheduled", {
       roomCode: room.code,

@@ -1,4 +1,4 @@
-import type { ParticipantRole, RoomStatus } from "@photobooth/shared";
+import type { BoothSettings, ParticipantRole, RoomStatus } from "@photobooth/shared";
 
 export interface RoomParticipant {
   id: string;
@@ -30,6 +30,7 @@ export interface ActiveRoom {
   status: RoomStatus;
   hostParticipantId: string;
   participants: Map<string, RoomParticipant>;
+  settings: BoothSettings;
   session?: ActiveSession;
   createdAt: number;
   expiresAt: number;
