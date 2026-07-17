@@ -1,0 +1,11 @@
+.backLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  color: var(--color-muted);
+  font-weight: 800;
+}
+
+.backLink:hover { color: var(--color-primary-hover); }

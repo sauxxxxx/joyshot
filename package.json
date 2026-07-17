@@ -1,0 +1,30 @@
+{
+  "name": "online-photobooth",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "predev": "npm run build -w @photobooth/shared",
+    "predev:https": "npm run build -w @photobooth/shared",
+    "prelint": "npm run build -w @photobooth/shared",
+    "pretest": "npm run build -w @photobooth/shared",
+    "dev": "concurrently -n web,realtime -c magenta,cyan \"npm run dev -w @photobooth/web\" \"npm run dev -w @photobooth/realtime\"",
+    "dev:https": "concurrently -n web,realtime -c magenta,cyan \"npm run dev:https -w @photobooth/web\" \"npm run dev:https -w @photobooth/realtime\"",
+    "setup:https": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-local-https.ps1",
+    "dev:web": "npm run dev -w @photobooth/web",
+    "dev:realtime": "npm run dev -w @photobooth/realtime",
+    "build": "npm run build -w @photobooth/shared && npm run build -w @photobooth/web && npm run build -w @photobooth/realtime",
+    "lint": "npm run lint -w @photobooth/web && npm run lint -w @photobooth/realtime",
+    "test": "npm run test -w @photobooth/web && npm run test -w @photobooth/realtime",
+    "check:lines": "node scripts/check-line-limits.mjs",
+    "verify": "npm run lint && npm run test && npm run build && npm run check:lines"
+  },
+  "devDependencies": {
+    "concurrently": "latest"
+  }
+}

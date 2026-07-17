@@ -1,0 +1,30 @@
+{
+  "name": "@photobooth/realtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:https": "node ../../scripts/run-realtime-https.mjs",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@photobooth/shared": "*",
+    "cors": "latest",
+    "express": "latest",
+    "socket.io": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/cors": "latest",
+    "@types/express": "latest",
+    "@types/node": "latest",
+    "socket.io-client": "latest",
+    "tsx": "latest",
+    "typescript": "^5.9.3",
+    "vitest": "latest"
+  }
+}

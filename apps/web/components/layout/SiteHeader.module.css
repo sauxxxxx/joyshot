@@ -1,0 +1,71 @@
+.header {
+  position: relative;
+  z-index: 20;
+  padding-top: max(14px, env(safe-area-inset-top));
+}
+
+.inner {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.logoMark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 2px solid var(--color-foreground);
+  border-radius: 13px;
+  background: var(--color-accent);
+  box-shadow: 3px 3px 0 var(--color-foreground);
+}
+
+.inner nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navLink {
+  display: none;
+  min-height: 44px;
+  align-items: center;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.navLink:hover {
+  color: var(--color-foreground);
+}
+
+.buildBadge {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 11px;
+  background: rgb(255 255 255 / 72%);
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+@media (min-width: 640px) {
+  .navLink {
+    display: inline-flex;
+  }
+}

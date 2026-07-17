@@ -1,0 +1,354 @@
+.booth {
+  padding-block: 46px 80px;
+}
+
+.copy {
+  max-width: 700px;
+  margin-bottom: 34px;
+}
+
+.copy h1,
+.result h1 {
+  margin-bottom: 15px;
+  font-size: clamp(2.6rem, 7vw, 4.8rem);
+  letter-spacing: -0.04em;
+}
+
+.copy p,
+.resultCopy > p {
+  max-width: 620px;
+  color: var(--color-muted);
+  font-size: 1.06rem;
+}
+
+.workspace {
+  display: grid;
+  gap: 32px;
+}
+
+.cameraColumn {
+  position: relative;
+  min-width: 0;
+}
+
+.countdownOverlay {
+  position: absolute;
+  z-index: 10;
+  inset: 0 0 94px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 24px;
+  background: rgb(12 14 22 / 24%);
+  color: white;
+  pointer-events: none;
+  text-shadow: 0 3px 20px rgb(0 0 0 / 44%);
+}
+
+.countdownOverlay strong {
+  font-family: var(--font-heading), sans-serif;
+  font-size: clamp(5.5rem, 18vw, 10rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 0.95;
+  animation: count-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.countdownOverlay > span:last-child {
+  margin-top: 12px;
+  font-weight: 900;
+}
+
+.progress {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgb(12 14 22 / 78%);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+@keyframes count-in {
+  from { opacity: 0; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.thumbnails {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.thumbnails > div {
+  display: grid;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  border: 2px dashed #b9ad9f;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 55%);
+  color: var(--color-muted);
+  font-weight: 900;
+}
+
+.thumbnails .thumbnailComplete {
+  border-style: solid;
+  border-color: var(--color-success);
+}
+
+.thumbnails img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.controls {
+  align-self: start;
+  border: 2px solid var(--color-foreground);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  background: var(--color-surface);
+  box-shadow: 7px 8px 0 var(--color-secondary);
+}
+
+.controlHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.controlHeading > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.controlHeading span,
+.selectLabel {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.controlHeading strong {
+  font-family: var(--font-heading), sans-serif;
+  font-size: 1.22rem;
+}
+
+.soundButton {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-background);
+}
+
+.checklist {
+  display: grid;
+  gap: 10px;
+  padding-block: 20px;
+}
+
+.checklist > div {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 12px;
+  padding: 8px 12px;
+  background: #f7f2ee;
+  color: var(--color-muted);
+  font-weight: 800;
+}
+
+.checklist div > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.checklist .checked {
+  background: #e4f6ed;
+  color: var(--color-success);
+}
+
+.selectLabel {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.controls select {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  margin-bottom: 18px;
+  padding: 10px 12px;
+  background: white;
+  font-weight: 800;
+}
+
+.controls > :global(.button) {
+  width: 100%;
+}
+
+.privacy,
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 0 0;
+  font-size: 0.84rem;
+}
+
+.privacy {
+  color: var(--color-muted);
+}
+
+.privacy svg {
+  flex: 0 0 auto;
+  color: var(--color-success);
+}
+
+.error {
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #ffeaeb;
+  color: var(--color-error);
+  font-weight: 800;
+}
+
+.processing {
+  position: fixed;
+  z-index: 40;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 50%;
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--color-foreground);
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: white;
+  box-shadow: 5px 6px 0 var(--color-foreground);
+  font-weight: 900;
+  transform: translateX(-50%);
+}
+
+.spinner,
+.largeSpinner {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.result {
+  display: grid;
+  align-items: start;
+  gap: 38px;
+  padding-block: 50px 90px;
+}
+
+.resultCopy {
+  padding-top: 16px;
+}
+
+.themePicker {
+  display: grid;
+  border: 0;
+  padding: 22px 0;
+  gap: 10px;
+}
+
+.themePicker legend {
+  margin-bottom: 9px;
+  font-weight: 900;
+}
+
+.themePicker label {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  gap: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: 14px;
+  padding: 8px 12px;
+  background: white;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.themePicker .themeActive {
+  border-color: var(--color-secondary);
+  box-shadow: var(--focus-ring);
+}
+
+.themeSwatch {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+}
+
+.resultActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.stripPreview {
+  display: grid;
+  min-height: 420px;
+  place-items: center;
+  border: 2px solid var(--color-foreground);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  background: #e7dfd8;
+  box-shadow: 9px 10px 0 var(--color-foreground);
+}
+
+.stripPreview img {
+  display: block;
+  width: min(100%, 390px);
+  height: auto;
+  box-shadow: 0 18px 42px rgb(24 32 51 / 24%);
+}
+
+.largeSpinner {
+  color: var(--color-secondary);
+}
+
+@media (min-width: 900px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.7fr);
+  }
+
+  .result {
+    grid-template-columns: minmax(300px, 0.8fr) minmax(420px, 1.2fr);
+  }
+
+  .controls {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .countdownOverlay strong {
+    animation: none;
+  }
+}

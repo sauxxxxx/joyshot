@@ -1,0 +1,74 @@
+.grid {
+  display: grid;
+  gap: 18px;
+}
+
+.videoCard {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 2px solid var(--color-foreground);
+  border-radius: 22px;
+  background: var(--color-camera);
+  box-shadow: 6px 7px 0 var(--color-foreground);
+}
+
+.videoCard video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.localVideo { transform: scaleX(-1); }
+
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  color: white;
+  text-align: center;
+}
+
+.placeholder > svg { color: var(--color-accent); }
+.placeholder span { max-width: 330px; color: #aeb5c2; font-size: 0.82rem; }
+
+.videoLabel {
+  position: absolute;
+  z-index: 3;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: rgb(15 18 27 / 84%);
+  color: white;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.videoLabel svg { color: #73e7b0; }
+.partnerLabel svg { color: #b7a8ff; }
+
+.flash {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flashActive { animation: room-flash 380ms ease-out; }
+@keyframes room-flash { 0% { opacity: 0; } 20% { opacity: 0.94; } 100% { opacity: 0; } }
+
+@media (min-width: 760px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
