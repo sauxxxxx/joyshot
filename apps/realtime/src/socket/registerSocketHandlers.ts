@@ -14,7 +14,7 @@ import {
 } from "@photobooth/shared";
 import type { Server, Socket } from "socket.io";
 import { RoomError, RoomRepository } from "../room/roomRepository.js";
-import { SessionCoordinator } from "../session/sessionCoordinator.js";
+import { SessionCoordinator } from "../session/captureSessionCoordinator.js";
 
 type PhotoboothServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type PhotoboothSocket = Socket<ClientToServerEvents, ServerToClientEvents>;

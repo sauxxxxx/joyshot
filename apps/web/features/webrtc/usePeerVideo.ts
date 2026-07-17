@@ -3,6 +3,7 @@
 import type { ParticipantState } from "@photobooth/shared";
 import { useEffect, useState } from "react";
 import type { PhotoboothSocket } from "@/lib/socket";
+import { getConfiguredIceServers } from "./iceServers";
 
 interface UsePeerVideoOptions {
   localStream: MediaStream | null;
@@ -26,9 +27,7 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
       return;
     }
 
-    const peer = new RTCPeerConnection({
-      iceServers: [{ urls: process.env.NEXT_PUBLIC_STUN_URL ?? "stun:stun.l.google.com:19302" }],
-    });
+    const peer = new RTCPeerConnection({ iceServers: getConfiguredIceServers() });
     const pendingCandidates: RTCIceCandidateInit[] = [];
     let makingOffer = false;
     let offerSent = false;

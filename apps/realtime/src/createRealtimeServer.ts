@@ -5,7 +5,7 @@ import cors, { type CorsOptions } from "cors";
 import express from "express";
 import { Server } from "socket.io";
 import { RoomRepository } from "./room/roomRepository.js";
-import { SessionCoordinator } from "./session/sessionCoordinator.js";
+import { SessionCoordinator } from "./session/captureSessionCoordinator.js";
 import { registerSocketHandlers } from "./socket/registerSocketHandlers.js";
 
 export interface RealtimeServerOptions {

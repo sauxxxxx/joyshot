@@ -1,8 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { CAPTURE_COUNT, COUNTDOWN_SECONDS, type ClientToServerEvents, type EventResult, type ServerToClientEvents } from "@photobooth/shared";
+import {
+  CAPTURE_COUNT,
+  COUNTDOWN_SECONDS,
+  type ClientToServerEvents,
+  type EventResult,
+  type ServerToClientEvents,
+} from "@photobooth/shared";
 import type { Server } from "socket.io";
 import type { RoomRepository } from "../room/roomRepository.js";
-import type { ActiveRoom, RoomParticipant } from "../room/roomTypes.js";
+import type { ActiveRoom, ActiveSession, RoomParticipant } from "../room/roomTypes.js";
 
 type PhotoboothServer = Server<ClientToServerEvents, ServerToClientEvents>;
 
@@ -14,12 +20,16 @@ export class SessionCoordinator {
   ) {}
 
   start(room: ActiveRoom, participant: RoomParticipant): EventResult<{ sessionId: string }> {
-    if (participant.id !== room.hostParticipantId) return failure("HOST_ONLY", "Only the host can start the booth.");
+    if (participant.id !== room.hostParticipantId) {
+      return failure("HOST_ONLY", "Only the host can start the booth.");
+    }
     const participants = [...room.participants.values()];
     if (participants.length !== 2 || participants.some((item) => !item.connected || !item.cameraReady || !item.ready)) {
       return failure("NOT_READY", "Both people need a connected camera and Ready status before starting.");
     }
-    if (room.session && room.session.status !== "complete") return failure("SESSION_ACTIVE", "A photo session is already active.");
+    if (room.session && room.session.status !== "complete") {
+      return failure("SESSION_ACTIVE", "A photo session is already active.");
+    }
 
     room.session = {
       id: randomUUID(),
@@ -40,17 +50,23 @@ export class SessionCoordinator {
     payload: { sessionId: string; shotIndex: number; image: ArrayBuffer | Uint8Array },
   ): EventResult<{ accepted: true }> {
     const session = room.session;
-    if (!session || session.id !== payload.sessionId) return failure("STALE_SESSION", "That photo belongs to an old session.");
+    if (!session || session.id !== payload.sessionId) {
+      return failure("STALE_SESSION", "That photo belongs to an old session.");
+    }
     if (session.status !== "capturing" || payload.shotIndex !== session.currentShotIndex) {
       return failure("WRONG_SHOT", "That capture does not match the active photo round.");
     }
 
     const image = normalizeImage(payload.image);
     if (!image) return failure("INVALID_IMAGE", "The submitted photo could not be read.");
-    if (image.byteLength > this.maxImageBytes) return failure("IMAGE_TOO_LARGE", "The photo is larger than the room limit.");
+    if (image.byteLength > this.maxImageBytes) {
+      return failure("IMAGE_TOO_LARGE", "The photo is larger than the room limit.");
+    }
 
     const round = session.captures.get(payload.shotIndex) ?? new Map();
-    if (round.has(participant.id)) return failure("DUPLICATE_CAPTURE", "Your photo for this round was already received.");
+    if (round.has(participant.id)) {
+      return failure("DUPLICATE_CAPTURE", "Your photo for this round was already received.");
+    }
     round.set(participant.id, { participantId: participant.id, image });
     session.captures.set(payload.shotIndex, round);
 
@@ -70,13 +86,14 @@ export class SessionCoordinator {
     if (!session) return;
     session.status = "countdown";
     room.status = "countdown";
+    const shotIndex = session.currentShotIndex;
     const countdownStartsAt = Date.now() + 700;
     const captureAt = countdownStartsAt + COUNTDOWN_SECONDS * 1000;
     this.broadcastState(room);
     this.io.to(room.code).emit("capture:scheduled", {
       roomCode: room.code,
       sessionId: session.id,
-      shotIndex: session.currentShotIndex,
+      shotIndex,
       countdownStartsAt,
       captureAt,
     });
@@ -87,9 +104,9 @@ export class SessionCoordinator {
       room.status = "capturing";
       this.broadcastState(room);
       const timeout = setTimeout(() => {
-        const current = room.session;
-        const received = current?.captures.get(current.currentShotIndex)?.size ?? 0;
-        if (current?.id === session.id && received < 2) this.cancel(room, "A photo did not arrive in time. Check both connections and try again.");
+        if (shouldCancelCapture(room.session, session.id, shotIndex)) {
+          this.cancel(room, "A photo did not arrive in time. Check both connections and try again.");
+        }
       }, 12_000);
       timeout.unref();
     }, captureAt - Date.now());
@@ -128,9 +145,16 @@ export class SessionCoordinator {
   }
 }
 
+export function shouldCancelCapture(session: ActiveSession | undefined, sessionId: string, shotIndex: number) {
+  if (!session || session.id !== sessionId || session.currentShotIndex !== shotIndex) return false;
+  return (session.captures.get(shotIndex)?.size ?? 0) < 2;
+}
+
 function normalizeImage(image: ArrayBuffer | Uint8Array) {
   if (image instanceof ArrayBuffer) return image;
-  if (ArrayBuffer.isView(image)) return image.buffer.slice(image.byteOffset, image.byteOffset + image.byteLength) as ArrayBuffer;
+  if (ArrayBuffer.isView(image)) {
+    return image.buffer.slice(image.byteOffset, image.byteOffset + image.byteLength) as ArrayBuffer;
+  }
   return undefined;
 }
 

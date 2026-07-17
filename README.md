@@ -61,6 +61,9 @@ Copy `.env.example` to `.env.local` for local overrides. Do not commit real depl
 | --- | --- | --- |
 | `NEXT_PUBLIC_REALTIME_URL` | Web | Public HTTPS URL of the Socket.IO service |
 | `NEXT_PUBLIC_STUN_URL` | Web | STUN server used for WebRTC negotiation |
+| `NEXT_PUBLIC_TURN_URL` | Web | Comma-separated TURN/TURNS relay URLs for restrictive networks |
+| `NEXT_PUBLIC_TURN_USERNAME` | Web | TURN relay username |
+| `NEXT_PUBLIC_TURN_CREDENTIAL` | Web | TURN relay credential |
 | `PORT` | Realtime | Listening port supplied by the hosting provider |
 | `WEB_ORIGIN` | Realtime | Exact public origin of the deployed web application |
 | `ROOM_TTL_MINUTES` | Realtime | Inactive room lifetime |
