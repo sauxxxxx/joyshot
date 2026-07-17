@@ -73,6 +73,15 @@ export function registerSocketHandlers(
     callback(sessions.start(found.room, found.participant));
   });
 
+  socket.on("session:reset", (payload, callback) => {
+    const parsed = sessionStartSchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) {
+      return callback(failure("NOT_IN_ROOM", "Join the room before resetting."));
+    }
+    callback(sessions.reset(found.room, found.participant));
+  });
+
   socket.on("capture:submit", (payload, callback) => {
     const code = roomCodeSchema.safeParse(payload.roomCode);
     const found = rooms.getBySocket(socket.id);

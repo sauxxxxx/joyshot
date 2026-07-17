@@ -18,7 +18,14 @@ export function useRoom(roomCode: string) {
 
   useEffect(() => {
     const normalizedCode = roomCode.toUpperCase();
-    const handleState = (state: RoomState) => setRoom(state);
+    const handleState = (state: RoomState) => {
+      setRoom(state);
+      if (!state.session) {
+        setSchedule(null);
+        setLatestPair(null);
+        setCompletion(null);
+      }
+    };
     const handleClosed = ({ message }: { message: string }) => {
       clearMembership(normalizedCode);
       setError(message);
@@ -101,6 +108,14 @@ export function useRoom(roomCode: string) {
     });
   }), [roomCode, socket]);
 
+  const resetSession = useCallback(() => new Promise<boolean>((resolve) => {
+    setError(null);
+    socket.emit("session:reset", { roomCode: roomCode.toUpperCase() }, (result) => {
+      if (!result.ok) setError(result.error.message);
+      resolve(result.ok);
+    });
+  }), [roomCode, socket]);
+
   const submitCapture = useCallback((payload: { sessionId: string; shotIndex: number; image: ArrayBuffer }) => {
     socket.emit("capture:submit", { roomCode: roomCode.toUpperCase(), ...payload }, (result) => {
       if (!result.ok) setError(result.error.message);
@@ -112,5 +127,5 @@ export function useRoom(roomCode: string) {
     clearMembership(roomCode.toUpperCase());
   }, [roomCode, socket]);
 
-  return { completion, error, latestPair, leave, membership, room, schedule, serverOffset, socket, startSession, status, submitCapture, updatePresence };
+  return { completion, error, latestPair, leave, membership, resetSession, room, schedule, serverOffset, socket, startSession, status, submitCapture, updatePresence };
 }

@@ -125,10 +125,6 @@
 .result h1 { margin-bottom: 16px; font-size: clamp(2.7rem, 7vw, 5rem); letter-spacing: -0.04em; }
 .resultCopy > p { max-width: 620px; color: var(--color-muted); font-size: 1.05rem; }
 
-.themes { display: grid; border: 0; padding: 22px 0; gap: 9px; }
-.themes legend { margin-bottom: 8px; font-weight: 900; }
-.themes label { display: flex; min-height: 48px; align-items: center; gap: 10px; border: 2px solid var(--color-border); border-radius: 13px; padding: 8px 12px; background: white; cursor: pointer; font-weight: 800; }
-.themes .themeActive { border-color: var(--color-secondary); box-shadow: var(--focus-ring); }
 .resultCopy > :global(.buttonGhost) { margin-top: 15px; }
 
 .stripPreview {

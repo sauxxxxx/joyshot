@@ -23,6 +23,10 @@ export interface ClientToServerEvents {
     payload: { roomCode: string },
     callback: (result: EventResult<{ sessionId: string }>) => void,
   ) => void;
+  "session:reset": (
+    payload: { roomCode: string },
+    callback: (result: EventResult<RoomState>) => void,
+  ) => void;
   "capture:submit": (
     payload: { roomCode: string; sessionId: string; shotIndex: number; image: ArrayBuffer },
     callback: (result: EventResult<{ accepted: true }>) => void,
@@ -54,6 +58,7 @@ export const socketEvents = {
   roomState: "room:state",
   participantPresence: "participant:presence",
   sessionStart: "session:start",
+  sessionReset: "session:reset",
   captureScheduled: "capture:scheduled",
   captureSubmit: "capture:submit",
   capturePairReady: "capture:pair-ready",

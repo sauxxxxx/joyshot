@@ -4,6 +4,7 @@ import {
   COUNTDOWN_SECONDS,
   type ClientToServerEvents,
   type EventResult,
+  type RoomState,
   type ServerToClientEvents,
 } from "@photobooth/shared";
 import type { Server } from "socket.io";
@@ -79,6 +80,22 @@ export class SessionCoordinator {
     this.rooms.refreshStatus(room);
     this.io.to(room.code).emit("session:cancelled", { message });
     this.broadcastState(room);
+  }
+
+  reset(room: ActiveRoom, participant: RoomParticipant): EventResult<RoomState> {
+    if (participant.id !== room.hostParticipantId) {
+      return failure("HOST_ONLY", "Only the host can reset the booth.");
+    }
+    if (!room.session || room.session.status !== "complete") {
+      return failure("SESSION_NOT_COMPLETE", "Finish the current photo session before resetting.");
+    }
+
+    room.session = undefined;
+    for (const member of room.participants.values()) member.ready = false;
+    this.rooms.refreshStatus(room);
+    const state = this.rooms.publicState(room);
+    this.io.to(room.code).emit("room:state", state);
+    return { ok: true, data: state };
   }
 
   private schedule(room: ActiveRoom) {

@@ -1,4 +1,5 @@
 import { stripThemes, type StripThemeId } from "./stripThemes";
+import { drawThemeMotif } from "./drawThemeMotif";
 
 const WIDTH = 900;
 const SIDE_PADDING = 56;
@@ -44,6 +45,7 @@ export async function drawSoloStrip(photos: string[], themeId: StripThemeId) {
 
   context.fillStyle = theme.background;
   context.fillRect(0, 0, WIDTH, height);
+  drawThemeMotif(context, WIDTH, height, theme);
 
   context.fillStyle = theme.foreground;
   context.textAlign = "center";
@@ -64,7 +66,7 @@ export async function drawSoloStrip(photos: string[], themeId: StripThemeId) {
     context.beginPath();
     context.arc(WIDTH - SIDE_PADDING - 28, y + 30, 22, 0, Math.PI * 2);
     context.fill();
-    context.fillStyle = themeId === "pink" ? "#182033" : "#ffffff";
+    context.fillStyle = theme.badgeForeground;
     context.font = "800 20px Nunito, Segoe UI, sans-serif";
     context.fillText(String(index + 1), WIDTH - SIDE_PADDING - 28, y + 31);
   });

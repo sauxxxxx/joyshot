@@ -99,4 +99,45 @@ describe("two-person room socket flow", () => {
     }
     await expect(pairReady).resolves.toBe(2);
   });
+
+  it("resets a completed booth without starting another countdown", async () => {
+    const host = await connect();
+    const guest = await connect();
+    const membership = await new Promise<Membership>((resolve) => {
+      host.emit("room:create", (result) => { if (result.ok) resolve(result.data); });
+    });
+    await new Promise<void>((resolve) => {
+      guest.emit("room:join", { roomCode: membership.room.code }, () => resolve());
+    });
+
+    const room = server.rooms.get(membership.room.code)!;
+    for (const participant of room.participants.values()) {
+      participant.cameraReady = true;
+      participant.ready = true;
+    }
+    room.session = {
+      id: "session-complete",
+      status: "complete",
+      currentShotIndex: 3,
+      shotCount: 4,
+      captures: new Map(),
+    };
+    room.status = "complete";
+
+    let scheduled = false;
+    host.once("capture:scheduled", () => { scheduled = true; });
+    const nextState = new Promise<Membership["room"]>((resolve) => {
+      guest.once("room:state", resolve);
+    });
+    const reset = await new Promise<boolean>((resolve) => {
+      host.emit("session:reset", { roomCode: membership.room.code }, (result) => resolve(result.ok));
+    });
+
+    expect(reset).toBe(true);
+    const state = await nextState;
+    expect(state.status).toBe("waiting");
+    expect(state.session).toBeUndefined();
+    expect(state.participants.every((participant) => !participant.ready)).toBe(true);
+    expect(scheduled).toBe(false);
+  });
 });

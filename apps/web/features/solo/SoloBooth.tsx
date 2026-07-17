@@ -6,6 +6,7 @@ import { CameraPreview } from "@/components/camera/CameraPreview";
 import { captureFrame } from "@/features/camera/captureFrame";
 import { useCamera } from "@/features/camera/useCamera";
 import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
+import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
 import styles from "./SoloBooth.module.css";
 
@@ -122,17 +123,7 @@ export function SoloBooth() {
           <span className="eyebrow"><Check size={17} /> Four poses captured</span>
           <h1 id="result-title">Your strip is ready.</h1>
           <p>Pick the frame that feels right, then save the full-resolution PNG to your device.</p>
-          <fieldset className={styles.themePicker}>
-            <legend>Photo strip theme</legend>
-            {Object.entries(stripThemes).map(([id, option]) => (
-              <label key={id} className={theme === id ? styles.themeActive : ""}>
-                <input type="radio" name="theme" value={id} checked={theme === id}
-                  onChange={() => setTheme(id as StripThemeId)} />
-                <span className={styles.themeSwatch} style={{ background: option.background, color: option.accent }} aria-hidden="true">●</span>
-                {option.label}
-              </label>
-            ))}
-          </fieldset>
+          <StripThemePicker onChange={setTheme} value={theme} />
           <div className={styles.resultActions}>
             <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}>
               {strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}
@@ -189,10 +180,7 @@ export function SoloBooth() {
             <div className={cameraStatus === "ready" ? styles.checked : ""}><span><Camera size={18} /> Camera access</span>{cameraStatus === "ready" && <Check size={18} />}</div>
             <div className={styles.checked}><span><ShieldCheck size={18} /> Local processing</span><Check size={18} /></div>
           </div>
-          <label className={styles.selectLabel} htmlFor="strip-theme">Strip style</label>
-          <select id="strip-theme" value={theme} onChange={(event) => setTheme(event.target.value as StripThemeId)} disabled={phase !== "setup"}>
-            {Object.entries(stripThemes).map(([id, option]) => <option value={id} key={id}>{option.label}</option>)}
-          </select>
+          <StripThemePicker label="Pick your starting style" onChange={setTheme} value={theme} />
           {cameraStatus !== "ready" ? (
             <button className="button buttonPrimary" type="button" onClick={() => void startCamera()} disabled={cameraStatus === "requesting"}>
               {cameraStatus === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}

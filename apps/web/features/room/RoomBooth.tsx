@@ -7,6 +7,7 @@ import { RoomVideoGrid } from "@/components/room/RoomVideoGrid";
 import { captureFrame, dataUrlToArrayBuffer } from "@/features/camera/captureFrame";
 import { useCamera } from "@/features/camera/useCamera";
 import { drawCombinedStrip } from "@/features/strip/drawCombinedStrip";
+import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
 import { usePeerVideo } from "@/features/webrtc/usePeerVideo";
 import { useRoom } from "./useRoom";
@@ -52,6 +53,14 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
       return next;
     });
   }, [roomState.latestPair]);
+
+  useEffect(() => {
+    if (roomState.completion) return;
+    setPairs([]);
+    setStrip(null);
+    setRenderError(null);
+    capturedScheduleRef.current = null;
+  }, [roomState.completion]);
 
   useEffect(() => {
     const schedule = roomState.schedule;
@@ -135,12 +144,10 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
           <span className="eyebrow"><Check size={17} /> Both photo sets received</span>
           <h1 id="room-result-title">Your moment, together.</h1>
           <p>Both people receive the same ordered photos. Pick a frame and download your copy.</p>
-          <fieldset className={styles.themes}><legend>Photo strip theme</legend>{Object.entries(stripThemes).map(([id, option]) => (
-            <label className={theme === id ? styles.themeActive : ""} key={id}><input type="radio" name="room-theme" checked={theme === id} onChange={() => setTheme(id as StripThemeId)} />{option.label}</label>
-          ))}</fieldset>
+          <StripThemePicker onChange={setTheme} value={theme} />
           <div className={styles.resultActions}>
             <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}>{strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}{strip ? "Download PNG" : "Rendering..."}</button>
-            {isHost ? <button className="button buttonSecondary" type="button" onClick={() => void roomState.startSession()}><RefreshCcw size={19} /> Take another</button> : <span className={styles.waitingText}>Waiting for host to start another</span>}
+            {isHost ? <button className="button buttonSecondary" type="button" onClick={() => void roomState.resetSession()}><RefreshCcw size={19} /> Take another</button> : <span className={styles.waitingText}>Waiting for host to reset the booth</span>}
           </div>
           <button className="button buttonGhost" type="button" onClick={leave}><DoorOpen size={19} /> Leave room</button>
         </div>

@@ -128,8 +128,7 @@
   flex-direction: column;
 }
 
-.controlHeading span,
-.selectLabel {
+.controlHeading span {
   color: var(--color-muted);
   font-size: 0.78rem;
   font-weight: 900;
@@ -179,22 +178,6 @@
 .checklist .checked {
   background: #e4f6ed;
   color: var(--color-success);
-}
-
-.selectLabel {
-  display: block;
-  margin-bottom: 7px;
-}
-
-.controls select {
-  width: 100%;
-  min-height: 48px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  margin-bottom: 18px;
-  padding: 10px 12px;
-  background: white;
-  font-weight: 800;
 }
 
 .controls > :global(.button) {
@@ -263,45 +246,6 @@
 
 .resultCopy {
   padding-top: 16px;
-}
-
-.themePicker {
-  display: grid;
-  border: 0;
-  padding: 22px 0;
-  gap: 10px;
-}
-
-.themePicker legend {
-  margin-bottom: 9px;
-  font-weight: 900;
-}
-
-.themePicker label {
-  display: flex;
-  min-height: 50px;
-  align-items: center;
-  gap: 10px;
-  border: 2px solid var(--color-border);
-  border-radius: 14px;
-  padding: 8px 12px;
-  background: white;
-  cursor: pointer;
-  font-weight: 800;
-}
-
-.themePicker .themeActive {
-  border-color: var(--color-secondary);
-  box-shadow: var(--focus-ring);
-}
-
-.themeSwatch {
-  display: grid;
-  width: 30px;
-  height: 30px;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
 }
 
 .resultActions {

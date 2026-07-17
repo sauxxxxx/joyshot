@@ -1,4 +1,5 @@
 import { stripThemes, type StripThemeId } from "./stripThemes";
+import { drawThemeMotif } from "./drawThemeMotif";
 
 const WIDTH = 1200;
 const PADDING = 54;
@@ -31,6 +32,7 @@ export async function drawCombinedStrip(pairs: string[][], themeId: StripThemeId
 
   context.fillStyle = theme.background;
   context.fillRect(0, 0, WIDTH, height);
+  drawThemeMotif(context, WIDTH, height, theme);
   context.fillStyle = theme.foreground;
   context.textAlign = "center";
   context.textBaseline = "middle";
