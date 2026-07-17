@@ -182,10 +182,8 @@ export function SoloBooth() {
           </div>
           <div className={styles.checklist}>
             <div className={cameraStatus === "ready" ? styles.checked : ""}><span><Camera size={18} /> Camera access</span>{cameraStatus === "ready" && <Check size={18} />}</div>
-            <div className={styles.checked}><span><ShieldCheck size={18} /> Local processing</span><Check size={18} /></div>
           </div>
-          <StripThemePicker label="Pick your starting style" onChange={setTheme} value={theme} />
-          <BoothSettingsPicker settings={settings} onChange={setSettings} />
+          <BoothSettingsPicker settings={settings} onChange={setSettings} showLayout={false} />
           {cameraStatus !== "ready" ? (
             <button className="button buttonPrimary" type="button" onClick={() => void startCamera()} disabled={cameraStatus === "requesting"}>
               {cameraStatus === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}
@@ -200,6 +198,18 @@ export function SoloBooth() {
           <p className={styles.privacy}><ShieldCheck size={17} /> Your solo photos stay in this browser and disappear when you close or refresh the page.</p>
         </aside>
       </div>
+
+      <section className={styles.customization} aria-labelledby="customization-title">
+        <div className={styles.customizationHeading}>
+          <div>
+            <span>Make it yours</span>
+            <h2 id="customization-title">Choose the finished look.</h2>
+          </div>
+          <p>Your choices stay editable until you start the countdown.</p>
+        </div>
+        <StripThemePicker label="Photo strip design" onChange={setTheme} value={theme} />
+        <BoothSettingsPicker settings={settings} onChange={setSettings} showTimer={false} />
+      </section>
 
       {phase === "processing" && (
         <div className={styles.processing} role="status"><LoaderCircle className={styles.spinner} size={24} /> Making your photo strip...</div>

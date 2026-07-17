@@ -15,8 +15,8 @@ const layouts: Array<{ value: PhotoLayoutId; label: string }> = [
   { value: "film", label: "Film Roll" },
 ];
 
-export function BoothSettingsPicker({ disabled, settings, onChange, showTimer = true }: {
-  disabled?: boolean; settings: BoothSettings; onChange: (settings: BoothSettings) => void; showTimer?: boolean;
+export function BoothSettingsPicker({ disabled, settings, onChange, showLayout = true, showTimer = true }: {
+  disabled?: boolean; settings: BoothSettings; onChange: (settings: BoothSettings) => void; showLayout?: boolean; showTimer?: boolean;
 }) {
   return <section className={styles.settings} aria-label="Booth settings">
     {showTimer && <fieldset><legend><Clock3 size={16} /> Countdown</legend><div className={styles.timerGrid}>
@@ -25,14 +25,14 @@ export function BoothSettingsPicker({ disabled, settings, onChange, showTimer = 
         <strong>{timer.label}</strong><small>{timer.hint}</small>
       </Choice>)}
     </div></fieldset>}
-    <fieldset><legend>Final photo layout</legend><div className={styles.layoutGrid}>
+    {showLayout && <fieldset><legend>Final photo layout</legend><div className={styles.layoutGrid}>
       {layouts.map((layout) => <Choice key={layout.value} checked={settings.layout === layout.value} disabled={disabled}
         name="layout" onChange={() => onChange({ ...settings, layout: layout.value })}>
         <span className={styles.layoutPreview} data-layout={layout.value} aria-hidden="true">
           {[0, 1, 2, 3].map((item) => <i key={item} />)}
         </span><strong>{layout.label}</strong>
       </Choice>)}
-    </div></fieldset>
+    </div></fieldset>}
   </section>;
 }
 

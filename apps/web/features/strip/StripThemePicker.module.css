@@ -1,4 +1,7 @@
-.picker { padding-block: 24px; }
+.picker {
+  padding-block: 24px;
+  container-type: inline-size;
+}
 
 .heading {
   display: flex;
@@ -90,11 +93,11 @@
 
 .selected .check { border-color: var(--color-secondary); background: var(--color-secondary); color: white; }
 
-@media (min-width: 520px) {
-  .grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+@container (min-width: 760px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 
-@media (max-width: 380px) {
+@container (max-width: 350px) {
   .grid { grid-template-columns: 1fr; }
 }
 
