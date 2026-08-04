@@ -1,0 +1,20 @@
+.setup { padding: 48px 0 80px; }
+.intro { max-width: 780px; margin-bottom: 30px; }
+.intro h1 { margin-bottom: 14px; font-size: clamp(2.4rem, 6vw, 4.8rem); }
+.intro p { color: var(--color-muted); font-size: 1.08rem; }
+.workspace { display: grid; gap: 28px; }
+.workspace form { display: grid; gap: 14px; border: 1px solid var(--color-border); border-radius: 22px; padding: 22px; background: var(--color-surface); }
+.workspace label { display: grid; gap: 6px; font-weight: 900; }
+.workspace input:not([type="color"]), .workspace select { min-height: 48px; border: 1px solid var(--color-border); border-radius: 11px; padding: 10px 12px; background: white; }
+.color { width: 100%; height: 48px; border: 1px solid var(--color-border); border-radius: 11px; padding: 4px; background: white; }
+.file { display: flex !important; min-height: 48px; align-items: center; justify-content: center; gap: 8px; border: 1px dashed var(--color-secondary); border-radius: 11px; background: var(--color-secondary-soft); color: var(--color-secondary); cursor: pointer; }
+.file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.remove { justify-self: start; border: 0; background: transparent; color: var(--color-error); }
+.saved { color: var(--color-success); font-weight: 900; text-align: center; }
+.preview { display: grid; min-height: 430px; place-items: center; align-content: center; border: 2px solid var(--color-foreground); border-radius: 28px; padding: 34px; background: radial-gradient(circle at top, color-mix(in srgb, var(--event-color) 28%, white), white 55%); box-shadow: 8px 9px 0 var(--color-foreground); text-align: center; }
+.preview > img { width: 110px; height: 110px; object-fit: contain; }
+.preview > span { margin-top: 14px; color: var(--event-color); font-weight: 900; text-transform: uppercase; }
+.preview h2 { margin: 5px 0; font-size: clamp(2rem, 5vw, 4rem); }
+.preview p { color: var(--color-muted); font-weight: 800; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 14px; }
+@media (min-width: 860px) { .workspace { grid-template-columns: minmax(300px, .75fr) 1.25fr; } }

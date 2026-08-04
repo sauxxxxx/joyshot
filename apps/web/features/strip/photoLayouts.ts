@@ -1,4 +1,5 @@
 import type { PhotoLayoutId } from "@photobooth/shared";
+import { photoFilterCss, type PhotoEdit } from "../editor/photoEdits";
 
 export interface PhotoFrame { x: number; y: number; width: number; height: number; }
 export interface PhotoLayout { width: number; height: number; header: number; footer: number; frames: PhotoFrame[]; }
@@ -38,11 +39,23 @@ export function calculatePhotoLayout(count: 4 | 8, layout: PhotoLayoutId): Photo
   return { width, header, footer, frames, height: header + rows * photoHeight + Math.max(0, rows - 1) * gap + footer };
 }
 
-export function drawImageCover(context: CanvasRenderingContext2D, image: HTMLImageElement, frame: PhotoFrame) {
+export function drawImageCover(context: CanvasRenderingContext2D, image: HTMLImageElement, frame: PhotoFrame, edit?: PhotoEdit) {
   const sourceRatio = image.width / image.height;
   const targetRatio = frame.width / frame.height;
   let sx = 0; let sy = 0; let sw = image.width; let sh = image.height;
   if (sourceRatio > targetRatio) { sw = image.height * targetRatio; sx = (image.width - sw) / 2; }
   else { sh = image.width / targetRatio; sy = (image.height - sh) / 2; }
+  if (edit) {
+    const zoom = Math.max(1, edit.zoom);
+    const zoomedWidth = sw / zoom;
+    const zoomedHeight = sh / zoom;
+    sx += (sw - zoomedWidth) / 2 + edit.offsetX * Math.max(0, image.width - zoomedWidth) / 100;
+    sy += (sh - zoomedHeight) / 2 + edit.offsetY * Math.max(0, image.height - zoomedHeight) / 100;
+    sw = zoomedWidth;
+    sh = zoomedHeight;
+    context.save();
+    context.filter = photoFilterCss(edit);
+  }
   context.drawImage(image, sx, sy, sw, sh, frame.x, frame.y, frame.width, frame.height);
+  if (edit) context.restore();
 }

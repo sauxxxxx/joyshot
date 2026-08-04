@@ -23,6 +23,7 @@ export class RoomRepository {
       hostParticipantId: participant.id,
       participants: new Map([[participant.id, participant]]),
       settings: { countdownSeconds: 5, layout: "strip" },
+      locked: false,
       createdAt: Date.now(),
       expiresAt: Date.now() + this.roomTtlMs,
     };
@@ -33,6 +34,7 @@ export class RoomRepository {
   join(code: string, socketId: string, resumeToken?: string): Membership {
     const room = this.rooms.get(code);
     if (!room) throw new RoomError("ROOM_NOT_FOUND", "That room does not exist or has expired.");
+    if (room.locked && !resumeToken) throw new RoomError("ROOM_LOCKED", "The host locked this booth. Ask them to reopen it.");
 
     if (resumeToken) {
       const returning = [...room.participants.values()].find((participant) => participant.resumeToken === resumeToken);
@@ -61,6 +63,8 @@ export class RoomRepository {
   get(code: string) {
     return this.rooms.get(code);
   }
+
+  get size() { return this.rooms.size; }
 
   getBySocket(socketId: string) {
     for (const room of this.rooms.values()) {
@@ -118,8 +122,9 @@ export class RoomRepository {
       hostParticipantId: room.hostParticipantId,
       participants: [...room.participants.values()]
         .sort((a, b) => (a.role === "host" ? -1 : b.role === "host" ? 1 : a.joinedAt - b.joinedAt))
-        .map<ParticipantState>(({ id, role, connected, cameraReady, ready }) => ({ id, role, connected, cameraReady, ready })),
+        .map<ParticipantState>(({ id, role, connected, cameraReady, ready, displayName }) => ({ id, role, connected, cameraReady, ready, displayName })),
       settings: room.settings,
+      locked: room.locked,
       session: room.session
         ? { id: room.session.id, status: room.session.status, currentShotIndex: room.session.currentShotIndex, shotCount: room.session.shotCount }
         : undefined,
@@ -145,6 +150,7 @@ export class RoomRepository {
       connected: true,
       cameraReady: false,
       ready: false,
+      displayName: role === "host" ? "Host" : "Guest",
       joinedAt: Date.now(),
     };
   }

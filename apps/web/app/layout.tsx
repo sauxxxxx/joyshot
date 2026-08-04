@@ -1,19 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Fredoka, Nunito } from "next/font/google";
 import type { ReactNode } from "react";
+import { PwaClient } from "@/components/pwa/PwaClient";
+import "@fontsource/fredoka/600.css";
+import "@fontsource/fredoka/700.css";
+import "@fontsource/nunito/400.css";
+import "@fontsource/nunito/700.css";
 import "./globals.css";
-
-const headingFont = Fredoka({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap",
-});
-
-const bodyFont = Nunito({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -21,6 +13,9 @@ export const metadata: Metadata = {
     template: "%s | JoyShot",
   },
   description: "Capture photo strips together, even when you are miles apart.",
+  applicationName: "JoyShot",
+  appleWebApp: { capable: true, title: "JoyShot", statusBarStyle: "default" },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
@@ -31,8 +26,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${headingFont.variable} ${bodyFont.variable}`}>
-      <body>{children}</body>
+    <html lang="en" data-scroll-behavior="smooth">
+      <body>{children}<PwaClient /></body>
     </html>
   );
 }

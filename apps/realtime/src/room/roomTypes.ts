@@ -8,6 +8,7 @@ export interface RoomParticipant {
   connected: boolean;
   cameraReady: boolean;
   ready: boolean;
+  displayName: string;
   joinedAt: number;
   disconnectedAt?: number;
 }
@@ -31,6 +32,7 @@ export interface ActiveRoom {
   hostParticipantId: string;
   participants: Map<string, RoomParticipant>;
   settings: BoothSettings;
+  locked: boolean;
   session?: ActiveSession;
   createdAt: number;
   expiresAt: number;

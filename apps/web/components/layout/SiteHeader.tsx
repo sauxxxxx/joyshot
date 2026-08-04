@@ -1,4 +1,4 @@
-import { Camera, GitBranch } from "lucide-react";
+import { CalendarHeart, Camera, Images } from "lucide-react";
 import Link from "next/link";
 import styles from "./SiteHeader.module.css";
 
@@ -13,13 +13,8 @@ export function SiteHeader() {
           <span>JoyShot</span>
         </Link>
         <nav aria-label="Primary navigation">
-          <a className={styles.navLink} href="#how-it-works">
-            How it works
-          </a>
-          <span className={styles.buildBadge} title="Local development build">
-            <GitBranch size={15} aria-hidden="true" />
-            MVP build
-          </span>
+          <Link className={styles.navLink} href="/event"><CalendarHeart size={16} /> Events</Link>
+          <Link className={styles.navLink} href="/gallery"><Images size={16} /> Gallery</Link>
         </nav>
       </div>
     </header>

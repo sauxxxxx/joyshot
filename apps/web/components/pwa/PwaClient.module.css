@@ -1,0 +1,6 @@
+.prompt { position: fixed; z-index: 50; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); left: 16px; display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 10px; max-width: 620px; border: 2px solid var(--color-foreground); border-radius: 16px; margin-left: auto; padding: 12px 14px; background: var(--color-surface); box-shadow: 6px 7px 0 var(--color-foreground); }
+.prompt div { display: grid; }
+.prompt span { color: var(--color-muted); font-size: .82rem; }
+.prompt button { min-height: 40px; border: 0; border-radius: 10px; background: var(--color-primary); color: white; padding: 8px 12px; font-weight: 900; }
+.prompt .close { display: grid; width: 40px; padding: 0; place-items: center; background: transparent; color: var(--color-muted); }
+@media (max-width: 520px) { .prompt { grid-template-columns: auto 1fr auto; } .prompt > button:not(.close) { grid-column: 1 / -1; } }

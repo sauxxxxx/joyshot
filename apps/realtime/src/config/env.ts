@@ -6,6 +6,7 @@ const envSchema = z.object({
   ROOM_TTL_MINUTES: z.coerce.number().int().positive().default(30),
   RECONNECT_GRACE_SECONDS: z.coerce.number().int().positive().default(45),
   MAX_IMAGE_BYTES: z.coerce.number().int().positive().default(1_048_576),
+  REDIS_URL: z.preprocess((value) => value === "" ? undefined : value, z.string().url().optional()),
   LOCAL_HTTPS: z.string().optional().transform((value) => value === "true"),
   HTTPS_KEY_PATH: z.string().default("../../certificates/lan-key.pem"),
   HTTPS_CERT_PATH: z.string().default("../../certificates/lan.pem"),

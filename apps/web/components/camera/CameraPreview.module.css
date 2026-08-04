@@ -16,6 +16,8 @@
   transform: scaleX(-1);
 }
 
+.notMirrored { transform: none; }
+
 .placeholder {
   position: absolute;
   inset: 0;

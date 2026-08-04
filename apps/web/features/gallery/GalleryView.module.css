@@ -1,0 +1,18 @@
+.gallery { padding: 48px 0 80px; }
+.gallery > header { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+.gallery h1 { max-width: 720px; margin-bottom: 10px; font-size: clamp(2.3rem, 6vw, 4.6rem); }
+.gallery header p { color: var(--color-muted); }
+.gallery header button, .actions a, .actions button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-surface); padding: 9px 12px; font-weight: 800; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 22px; align-items: start; }
+.grid article { overflow: hidden; border: 2px solid var(--color-foreground); border-radius: 20px; background: var(--color-surface); box-shadow: 6px 7px 0 var(--color-foreground); }
+.grid article > img { display: block; width: 100%; max-height: 440px; object-fit: contain; background: var(--color-camera); }
+.grid article > div { padding: 16px; }
+.grid article span { color: var(--color-muted); font-size: .76rem; font-weight: 900; text-transform: uppercase; }
+.grid h2 { margin: 5px 0 12px; font-size: 1.2rem; }
+.actions { display: flex; gap: 8px; }
+.actions button { color: var(--color-error); }
+.empty { display: grid; min-height: 320px; place-items: center; align-content: center; border: 2px dashed var(--color-border); border-radius: 24px; color: var(--color-muted); text-align: center; }
+.empty h2, .empty p { margin-bottom: 6px; }
+.spinner { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 600px) { .gallery > header { align-items: start; flex-direction: column; } }

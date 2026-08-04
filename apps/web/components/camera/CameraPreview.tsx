@@ -10,9 +10,10 @@ interface CameraPreviewProps {
   status: CameraStatus;
   stream: MediaStream | null;
   videoRef: RefObject<HTMLVideoElement | null>;
+  mirrored?: boolean;
 }
 
-export function CameraPreview({ flash, status, stream, videoRef }: CameraPreviewProps) {
+export function CameraPreview({ flash, status, stream, videoRef, mirrored = true }: CameraPreviewProps) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -24,7 +25,7 @@ export function CameraPreview({ flash, status, stream, videoRef }: CameraPreview
     <div className={styles.shell}>
       <video
         ref={videoRef}
-        className={styles.video}
+        className={`${styles.video} ${mirrored ? "" : styles.notMirrored}`}
         autoPlay
         muted
         playsInline

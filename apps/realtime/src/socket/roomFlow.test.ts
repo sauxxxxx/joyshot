@@ -147,4 +147,38 @@ describe("two-person room socket flow", () => {
     expect(state.participants.every((participant) => !participant.ready)).toBe(true);
     expect(scheduled).toBe(false);
   });
+
+  it("synchronizes names and reactions and lets the host lock or remove a guest", async () => {
+    const host = await connect();
+    const guest = await connect();
+    const outsider = await connect();
+    const membership = await new Promise<Membership>((resolve) => {
+      host.emit("room:create", (result) => { if (result.ok) resolve(result.data); });
+    });
+    const guestMembership = await new Promise<Membership>((resolve) => {
+      guest.emit("room:join", { roomCode: membership.room.code }, (result) => { if (result.ok) resolve(result.data); });
+    });
+    const named = await new Promise<boolean>((resolve) => {
+      guest.emit("participant:profile", { roomCode: membership.room.code, displayName: "Mia" }, (result) =>
+        resolve(result.ok && result.data.participants.some(({ displayName }) => displayName === "Mia")));
+    });
+    expect(named).toBe(true);
+
+    const reaction = new Promise<string>((resolve) => host.once("participant:reaction", ({ reaction: value }) => resolve(value)));
+    guest.emit("participant:reaction", { roomCode: membership.room.code, reaction: "heart" });
+    await expect(reaction).resolves.toBe("heart");
+
+    const locked = await new Promise<boolean>((resolve) => {
+      host.emit("room:policy", { roomCode: membership.room.code, locked: true }, (result) => resolve(result.ok && result.data.locked));
+    });
+    expect(locked).toBe(true);
+    const rejected = await new Promise<string>((resolve) => {
+      outsider.emit("room:join", { roomCode: membership.room.code }, (result) => resolve(result.ok ? "" : result.error.code));
+    });
+    expect(rejected).toBe("ROOM_LOCKED");
+
+    const removed = new Promise<string>((resolve) => guest.once("room:closed", ({ message }) => resolve(message)));
+    host.emit("room:kick", { roomCode: membership.room.code, participantId: guestMembership.participantId }, () => undefined);
+    await expect(removed).resolves.toContain("removed");
+  });
 });

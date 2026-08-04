@@ -17,6 +17,7 @@ interface UsePeerVideoOptions {
 export function usePeerVideo({ localStream, participantId, participants, role, roomCode, socket }: UsePeerVideoOptions) {
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [connectionState, setConnectionState] = useState<RTCPeerConnectionState>("new");
+  const [quality, setQuality] = useState<"connecting" | "good" | "fair" | "poor">("connecting");
   const peerParticipant = participants.find((participant) => participant.id !== participantId && participant.connected);
   const peerId = peerParticipant?.id;
   const peerCameraReady = Boolean(peerParticipant?.cameraReady);
@@ -32,6 +33,7 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
     let makingOffer = false;
     let offerSent = false;
     let reconnectTimer: number | undefined;
+    let statsTimer: number | undefined;
 
     if (localStream) {
       localStream.getTracks().forEach((track) => peer.addTrack(track, localStream));
@@ -41,6 +43,7 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
     peer.ontrack = (event) => setRemoteStream(event.streams[0] ?? new MediaStream([event.track]));
     peer.onconnectionstatechange = () => {
       setConnectionState(peer.connectionState);
+      if (peer.connectionState !== "connected") setQuality("connecting");
       if (peer.connectionState === "failed" && role === "host") {
         offerSent = false;
         void sendOffer(true);
@@ -53,6 +56,19 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
         }, 2_000);
       }
     };
+    const sampleQuality = async () => {
+      const reports = await peer.getStats();
+      let score = 0;
+      reports.forEach((report) => {
+        if (report.type === "inbound-rtp" && report.kind === "video") {
+          if ((report.packetsLost ?? 0) > 8) score += 2;
+          if ((report.jitter ?? 0) > 0.08) score += 1;
+        }
+        if (report.type === "candidate-pair" && report.state === "succeeded" && (report.currentRoundTripTime ?? 0) > 0.35) score += 2;
+      });
+      setQuality(score >= 3 ? "poor" : score >= 1 ? "fair" : "good");
+    };
+    statsTimer = window.setInterval(() => { if (peer.connectionState === "connected") void sampleQuality(); }, 3_000);
     peer.onicecandidate = ({ candidate }) => {
       if (!candidate) return;
       socket.emit("webrtc:ice-candidate", {
@@ -125,6 +141,7 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
     return () => {
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
       if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      if (statsTimer) window.clearInterval(statsTimer);
       socket.off("webrtc:ready", handlePeerReady);
       socket.off("webrtc:offer", handleOffer);
       socket.off("webrtc:answer", handleAnswer);
@@ -134,5 +151,5 @@ export function usePeerVideo({ localStream, participantId, participants, role, r
     };
   }, [localStream, participantId, peerCameraReady, peerId, role, roomCode, socket]);
 
-  return { connectionState, remoteStream };
+  return { connectionState, quality, remoteStream };
 }

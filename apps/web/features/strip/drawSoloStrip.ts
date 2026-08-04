@@ -1,4 +1,5 @@
 import type { PhotoLayoutId } from "@photobooth/shared";
+import { createPhotoEdit, type PhotoEdit, type StripTextOptions } from "../editor/photoEdits";
 import { stripThemes, type StripThemeId } from "./stripThemes";
 import { drawThemeMotif } from "./drawThemeMotif";
 import { calculatePhotoLayout, drawImageCover } from "./photoLayouts";
@@ -26,7 +27,12 @@ function drawHeart(context: CanvasRenderingContext2D, x: number, y: number, size
   context.restore();
 }
 
-export async function drawSoloStrip(photos: string[], themeId: StripThemeId, layoutId: PhotoLayoutId = "strip") {
+export async function drawSoloStrip(
+  photos: string[] | PhotoEdit[],
+  themeId: StripThemeId,
+  layoutId: PhotoLayoutId = "strip",
+  text: StripTextOptions = {},
+) {
   if (photos.length !== 4) throw new Error("Four photos are required to build the strip.");
 
   const theme = stripThemes[themeId];
@@ -45,18 +51,25 @@ export async function drawSoloStrip(photos: string[], themeId: StripThemeId, lay
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.font = "700 50px Fredoka, Trebuchet MS, sans-serif";
-  context.fillText("JoyShot", layout.width / 2, 66);
+  context.fillText((text.title || "JoyShot").slice(0, 34), layout.width / 2, 66);
   context.font = "700 20px Nunito, Segoe UI, sans-serif";
   context.fillText("FOUR LITTLE MOMENTS, ONE KEEPSAKE", layout.width / 2, 111);
 
-  const images = await Promise.all(photos.map(loadImage));
+  if (text.logoSource) {
+    const logo = await loadImage(text.logoSource);
+    const size = 76;
+    context.drawImage(logo, layout.width - size - 42, 28, size, size);
+  }
+
+  const edits = photos.map((photo) => typeof photo === "string" ? createPhotoEdit(photo) : photo);
+  const images = await Promise.all(edits.map((edit) => loadImage(edit.source)));
   images.forEach((image, index) => {
     const frame = layout.frames[index];
     context.fillStyle = theme.panel;
     context.fillRect(frame.x - 8, frame.y - 8, frame.width + 16, frame.height + 16);
-    drawImageCover(context, image, frame);
+    drawImageCover(context, image, frame, edits[index]);
 
-    context.fillStyle = theme.accent;
+    context.fillStyle = text.brandColor || theme.accent;
     context.beginPath();
     context.arc(frame.x + frame.width - 28, frame.y + 30, 22, 0, Math.PI * 2);
     context.fill();
@@ -68,8 +81,8 @@ export async function drawSoloStrip(photos: string[], themeId: StripThemeId, lay
   context.fillStyle = theme.foreground;
   context.font = "700 22px Nunito, Segoe UI, sans-serif";
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date());
-  context.fillText(date.toUpperCase(), layout.width / 2, layout.height - 52);
-  context.fillStyle = theme.accent;
+  context.fillText((text.caption || date).slice(0, 64).toUpperCase(), layout.width / 2, layout.height - 52);
+  context.fillStyle = text.brandColor || theme.accent;
   drawHeart(context, 66, layout.height - 72, 36);
   drawHeart(context, layout.width - 102, layout.height - 72, 36);
 

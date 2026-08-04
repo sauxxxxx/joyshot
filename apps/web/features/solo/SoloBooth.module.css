@@ -289,6 +289,11 @@
   padding-top: 16px;
 }
 
+.textOptions { display: grid; gap: 10px; margin: 18px 0; }
+.textOptions label { display: grid; gap: 5px; color: var(--color-muted); font-size: .82rem; font-weight: 900; }
+.textOptions input { min-height: 44px; border: 1px solid var(--color-border); border-radius: 11px; padding: 9px 11px; background: var(--color-surface); }
+.result > :last-child { grid-column: 1 / -1; }
+
 .resultActions {
   display: flex;
   flex-wrap: wrap;

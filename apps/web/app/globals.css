@@ -1,4 +1,6 @@
 :root {
+  --font-heading: "Fredoka";
+  --font-body: "Nunito";
   --color-background: #fff8f1;
   --color-surface: #ffffff;
   --color-surface-soft: #fff1eb;

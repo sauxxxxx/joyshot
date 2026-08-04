@@ -16,6 +16,14 @@ A privacy-first online photobooth built with Next.js, Socket.IO, browser camera 
 - Dual live previews with WebRTC signaling
 - Server-timed four-shot sessions and binary photo exchange
 - Combined two-person strip generation and download
+- Camera device switching and independent mirror control
+- Per-frame filters, brightness, contrast, zoom, reordering, and solo retakes
+- GIF, WebM, Story, square, PNG, and native-share exports
+- QR room invites, display names, reactions, host locking, and guest removal
+- Device-local private gallery with event retention policies
+- Branded event and kiosk mode with logo, color, title, and caption controls
+- Installable PWA shell and offline access to cached pages
+- Realtime rate limits, security headers, structured logs, metrics, and optional Redis pub/sub
 - Realtime server health endpoint
 
 Production deployments should configure a TURN relay in addition to STUN so live peer video works on restrictive networks.
@@ -51,7 +59,7 @@ npm run dev:web
 npm run dev:realtime
 ```
 
-The realtime health endpoint is `http://localhost:3001/health`.
+The realtime health endpoint is `http://localhost:3001/health`; Prometheus metrics are available at `http://localhost:3001/metrics`.
 
 ## Environment variables
 
@@ -69,6 +77,7 @@ Copy `.env.example` to `.env.local` for local overrides. Do not commit real depl
 | `ROOM_TTL_MINUTES` | Realtime | Inactive room lifetime |
 | `RECONNECT_GRACE_SECONDS` | Realtime | Time allowed for a participant to reconnect |
 | `MAX_IMAGE_BYTES` | Realtime | Maximum submitted image payload size |
+| `REDIS_URL` | Realtime | Optional Redis URL for Socket.IO pub/sub |
 
 For production, use HTTPS URLs: `NEXT_PUBLIC_REALTIME_URL=https://realtime.example.com` and `WEB_ORIGIN=https://example.com`.
 
@@ -90,4 +99,4 @@ npm run verify
 
 GitHub Actions runs the same verification on every push and pull request.
 
-See [the implementation plan](docs/IMPLEMENTATION_PLAN.md) and [the UI/UX plan](docs/UI_UX_PLAN.md) for the complete roadmap and acceptance criteria.
+See [the implementation plan](docs/IMPLEMENTATION_PLAN.md), [the UI/UX plan](docs/UI_UX_PLAN.md), and [the expansion architecture](docs/EXPANSION_ARCHITECTURE.md) for product boundaries and provider-gated next steps.

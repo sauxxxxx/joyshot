@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@photobooth/shared": "*",
+    "@socket.io/redis-adapter": "^8.3.0",
     "cors": "latest",
     "express": "latest",
+    "helmet": "^8.3.0",
+    "redis": "^6.2.0",
     "socket.io": "latest",
     "zod": "latest"
   },

@@ -3,6 +3,7 @@ import { createServer as createHttpsServer } from "node:https";
 import type { ClientToServerEvents, ServerToClientEvents } from "@photobooth/shared";
 import cors, { type CorsOptions } from "cors";
 import express from "express";
+import helmet from "helmet";
 import { Server } from "socket.io";
 import { RoomRepository } from "./room/roomRepository.js";
 import { SessionCoordinator } from "./session/captureSessionCoordinator.js";
@@ -29,9 +30,9 @@ export function createRealtimeServer(options: RealtimeServerOptions) {
   };
   const app = express();
   app.disable("x-powered-by");
+  app.use(helmet({ contentSecurityPolicy: false, crossOriginResourcePolicy: { policy: "cross-origin" } }));
   app.use(cors({ origin }));
   app.use(express.json({ limit: "32kb" }));
-  app.get("/health", (_request, response) => response.json({ status: "ok", service: "photobooth-realtime" }));
 
   const httpServer = options.tls
     ? createHttpsServer(options.tls, app)
@@ -41,6 +42,21 @@ export function createRealtimeServer(options: RealtimeServerOptions) {
     maxHttpBufferSize: options.maxImageBytes + 64_000,
   });
   const rooms = new RoomRepository(options.roomTtlMs, options.reconnectGraceMs);
+  const startedAt = Date.now();
+  app.get("/health", (_request, response) => response.json({ status: "ok", service: "photobooth-realtime", uptimeSeconds: Math.floor((Date.now() - startedAt) / 1000) }));
+  app.get("/metrics", (_request, response) => {
+    response.type("text/plain").send([
+      "# HELP joyshot_active_rooms Current in-memory rooms",
+      "# TYPE joyshot_active_rooms gauge",
+      `joyshot_active_rooms ${rooms.size}`,
+      "# HELP joyshot_socket_connections Current Socket.IO connections",
+      "# TYPE joyshot_socket_connections gauge",
+      `joyshot_socket_connections ${io.engine.clientsCount}`,
+      "# HELP joyshot_uptime_seconds Realtime service uptime",
+      "# TYPE joyshot_uptime_seconds counter",
+      `joyshot_uptime_seconds ${Math.floor((Date.now() - startedAt) / 1000)}`,
+    ].join("\n"));
+  });
   const sessions = new SessionCoordinator(io, rooms, options.maxImageBytes);
   io.on("connection", (socket) => registerSocketHandlers(io, socket, rooms, sessions));
 

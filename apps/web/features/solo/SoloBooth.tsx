@@ -5,11 +5,16 @@ import { Camera, Check, Download, LoaderCircle, RefreshCcw, ShieldCheck, Volume2
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraPreview } from "@/components/camera/CameraPreview";
 import { captureFrame } from "@/features/camera/captureFrame";
+import { CameraControls } from "@/features/camera/CameraControls";
 import { useCamera } from "@/features/camera/useCamera";
+import { ResultStudio } from "@/features/editor/ResultStudio";
+import { createPhotoEdit, type PhotoEdit } from "@/features/editor/photoEdits";
+import { readEventProfile, type EventProfile } from "@/features/event/eventProfile";
 import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
 import { BoothSettingsPicker } from "@/features/strip/BoothSettingsPicker";
 import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
+import { promptForShot } from "@/features/session/posePrompts";
 import styles from "./SoloBooth.module.css";
 
 type BoothPhase = "setup" | "countdown" | "processing" | "complete";
@@ -18,17 +23,28 @@ const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeou
 export function SoloBooth() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cancelledRef = useRef(false);
-  const { error: cameraError, start: startCamera, status: cameraStatus, stream } = useCamera();
+  const camera = useCamera();
+  const { error: cameraError, start: startCamera, status: cameraStatus, stream } = camera;
   const [phase, setPhase] = useState<BoothPhase>("setup");
   const [theme, setTheme] = useState<StripThemeId>("classic");
   const [settings, setSettings] = useState<BoothSettings>({ countdownSeconds: 5, layout: "strip" });
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [edits, setEdits] = useState<PhotoEdit[]>([]);
   const [strip, setStrip] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
   const [muted, setMuted] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [title, setTitle] = useState("JoyShot");
+  const [caption, setCaption] = useState("");
+  const [eventProfile, setEventProfile] = useState<EventProfile | null>(null);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("event") !== "1") return;
+    const profile = readEventProfile();
+    if (profile) { setEventProfile(profile); setTitle(profile.name); setCaption(profile.caption); }
+  }, []);
 
   useEffect(() => () => {
     cancelledRef.current = true;
@@ -38,13 +54,22 @@ export function SoloBooth() {
     if (photos.length !== 4 || phase !== "complete") return;
     let active = true;
     setStrip(null);
-    void drawSoloStrip(photos, theme, settings.layout)
+    void drawSoloStrip(edits.length === 4 ? edits : photos, theme, settings.layout, {
+      title, caption, logoSource: eventProfile?.logoSource, brandColor: eventProfile?.brandColor,
+    })
       .then((nextStrip) => active && setStrip(nextStrip))
       .catch(() => active && setSessionError("We could not redraw that theme. Try another one."));
     return () => {
       active = false;
     };
-  }, [photos, theme, settings.layout, phase]);
+  }, [caption, edits, eventProfile, photos, theme, settings.layout, phase, title]);
+
+  useEffect(() => {
+    if (phase !== "countdown" || !("wakeLock" in navigator)) return;
+    let lock: WakeLockSentinel | undefined;
+    void navigator.wakeLock.request("screen").then((nextLock) => { lock = nextLock; }).catch(() => undefined);
+    return () => { void lock?.release(); };
+  }, [phase]);
 
   const playTone = useCallback((frequency: number, duration: number) => {
     if (muted) return;
@@ -67,6 +92,7 @@ export function SoloBooth() {
     cancelledRef.current = false;
     setSessionError(null);
     setPhotos([]);
+    setEdits([]);
     setStrip(null);
     setPhase("countdown");
 
@@ -84,7 +110,7 @@ export function SoloBooth() {
         setCountdown(null);
         setFlash(true);
         playTone(880, 180);
-        captures.push(captureFrame(videoRef.current, { mirror: true }));
+        captures.push(captureFrame(videoRef.current, { mirror: camera.mirrored }));
         setPhotos([...captures]);
         await wait(380);
         setFlash(false);
@@ -92,7 +118,8 @@ export function SoloBooth() {
       }
 
       setPhase("processing");
-      const result = await drawSoloStrip(captures, theme, settings.layout);
+      setEdits(captures.map(createPhotoEdit));
+      const result = await drawSoloStrip(captures, theme, settings.layout, { title, caption, logoSource: eventProfile?.logoSource, brandColor: eventProfile?.brandColor });
       if (cancelledRef.current) return;
       setStrip(result);
       setPhase("complete");
@@ -100,12 +127,26 @@ export function SoloBooth() {
       setSessionError(captureError instanceof Error ? captureError.message : "The session could not be completed.");
       setPhase("setup");
     }
-  }, [cameraStatus, playTone, settings, theme]);
+  }, [camera.mirrored, cameraStatus, caption, eventProfile, playTone, settings, theme, title]);
+
+  const retakePhoto = useCallback(async (index: number) => {
+    if (!videoRef.current || cameraStatus !== "ready") return;
+    cancelledRef.current = false; setShotIndex(index); setPhase("countdown"); setSessionError(null);
+    try {
+      for (let count = settings.countdownSeconds; count >= 1; count -= 1) { setCountdown(count); playTone(620, 100); await wait(1000); }
+      setCountdown(null); setFlash(true); playTone(880, 180);
+      const source = captureFrame(videoRef.current, { mirror: camera.mirrored });
+      const nextPhotos = photos.map((photo, photoIndex) => photoIndex === index ? source : photo);
+      const nextEdits = edits.map((edit, editIndex) => editIndex === index ? createPhotoEdit(source) : edit);
+      setPhotos(nextPhotos); setEdits(nextEdits); await wait(380); setFlash(false); setPhase("complete");
+    } catch (error) { setSessionError(error instanceof Error ? error.message : "That photo could not be retaken."); setPhase("complete"); }
+  }, [camera.mirrored, cameraStatus, edits, photos, playTone, settings.countdownSeconds]);
 
   const reset = useCallback(() => {
     cancelledRef.current = true;
     setPhase("setup");
     setPhotos([]);
+    setEdits([]);
     setStrip(null);
     setCountdown(null);
     setSessionError(null);
@@ -126,6 +167,7 @@ export function SoloBooth() {
           <span className="eyebrow"><Check size={17} /> Four poses captured</span>
           <h1 id="result-title">Your strip is ready.</h1>
           <p>Pick the frame that feels right, then save the full-resolution PNG to your device.</p>
+          <div className={styles.textOptions}><label>Strip title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Caption<input maxLength={64} value={caption} placeholder="Optional message" onChange={(event) => setCaption(event.target.value)} /></label></div>
           <StripThemePicker onChange={setTheme} value={theme} />
           <BoothSettingsPicker settings={settings} onChange={setSettings} showTimer={false} />
           <div className={styles.resultActions}>
@@ -142,6 +184,7 @@ export function SoloBooth() {
         <div className={styles.stripPreview} aria-live="polite">
           {strip ? <img src={strip} alt={`Completed four-photo strip in the ${stripThemes[theme].label} theme`} /> : <LoaderCircle className={styles.largeSpinner} aria-label="Rendering photo strip" />}
         </div>
+        <ResultStudio photos={photos} initialEdits={edits} strip={strip} title={title} mode={eventProfile ? "event" : "solo"} retentionHours={eventProfile?.retentionHours} onEditsChange={setEdits} onRetake={(index) => void retakePhoto(index)} />
       </section>
     );
   }
@@ -156,12 +199,12 @@ export function SoloBooth() {
 
       <div className={styles.workspace}>
         <div className={styles.cameraColumn}>
-          <CameraPreview flash={flash} status={cameraStatus} stream={stream} videoRef={videoRef} />
+          <CameraPreview flash={flash} mirrored={camera.mirrored} status={cameraStatus} stream={stream} videoRef={videoRef} />
           {phase === "countdown" && (
             <div className={styles.countdownOverlay} aria-live="assertive" aria-atomic="true">
               <span className={styles.progress}>Photo {shotIndex + 1} of 4</span>
               <strong key={`${shotIndex}-${countdown}`}>{countdown ?? "Smile!"}</strong>
-              <span>Look at the camera</span>
+              <span>{promptForShot(shotIndex)}</span>
             </div>
           )}
           <div className={styles.thumbnails} aria-label={`${photos.length} of 4 photos captured`}>
@@ -184,6 +227,8 @@ export function SoloBooth() {
             <div className={cameraStatus === "ready" ? styles.checked : ""}><span><Camera size={18} /> Camera access</span>{cameraStatus === "ready" && <Check size={18} />}</div>
           </div>
           <BoothSettingsPicker settings={settings} onChange={setSettings} showLayout={false} />
+          {cameraStatus === "ready" && <CameraControls devices={camera.devices} mirrored={camera.mirrored} selectedDeviceId={camera.selectedDeviceId}
+            disabled={phase !== "setup"} onFlip={() => void camera.flipCamera()} onMirrorChange={camera.setMirrored} onSelect={(deviceId) => void camera.selectDevice(deviceId)} />}
           {cameraStatus !== "ready" ? (
             <button className="button buttonPrimary" type="button" onClick={() => void startCamera()} disabled={cameraStatus === "requesting"}>
               {cameraStatus === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}

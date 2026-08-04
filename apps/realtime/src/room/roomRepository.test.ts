@@ -20,6 +20,15 @@ describe("RoomRepository", () => {
     expect(() => rooms.join(host.room.code, "third-socket")).toThrowError(RoomError);
   });
 
+  it("prevents new guests from joining a locked room while allowing resume", () => {
+    const rooms = new RoomRepository(60_000, 2_000);
+    const host = rooms.create("host-socket");
+    const active = rooms.get(host.room.code)!;
+    active.locked = true;
+    expect(() => rooms.join(host.room.code, "guest-socket")).toThrowError("The host locked this booth");
+    expect(rooms.join(host.room.code, "new-host-socket", host.resumeToken).participantId).toBe(host.participantId);
+  });
+
   it("reconnects a participant using its opaque token", () => {
     const rooms = new RoomRepository(60_000, 5_000);
     const host = rooms.create("old-socket");

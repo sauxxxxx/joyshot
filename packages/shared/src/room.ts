@@ -17,6 +17,19 @@ export const roomPresenceSchema = z.object({
   ready: z.boolean().optional(),
 });
 
+export const participantProfileSchema = z.object({
+  roomCode: roomCodeSchema,
+  displayName: z.string().trim().min(1).max(24),
+});
+
+export const participantReactionSchema = z.object({
+  roomCode: roomCodeSchema,
+  reaction: z.enum(["heart", "sparkle", "celebrate"]),
+});
+
+export const roomPolicySchema = z.object({ roomCode: roomCodeSchema, locked: z.boolean() });
+export const roomKickSchema = z.object({ roomCode: roomCodeSchema, participantId: z.string().uuid() });
+
 export const boothSettingsSchema = z.object({
   countdownSeconds: z.union([z.literal(3), z.literal(5), z.literal(10)]),
   layout: z.enum(["strip", "grid", "postcard", "film"]),
@@ -43,7 +56,10 @@ export interface ParticipantState {
   connected: boolean;
   cameraReady: boolean;
   ready: boolean;
+  displayName: string;
 }
+
+export type ParticipantReaction = "heart" | "sparkle" | "celebrate";
 
 export interface PublicSessionState {
   id: string;
@@ -58,6 +74,7 @@ export interface RoomState {
   hostParticipantId: string;
   participants: ParticipantState[];
   settings: BoothSettings;
+  locked: boolean;
   session?: PublicSessionState;
 }
 

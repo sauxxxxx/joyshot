@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 
 export type CameraStatus = "idle" | "requesting" | "ready" | "error";
 
+export interface CameraDevice {
+  deviceId: string;
+  label: string;
+}
+
 function getCameraErrorMessage(error: unknown) {
   if (!(error instanceof DOMException)) {
     return "We could not start your camera. Check your browser settings and try again.";
@@ -25,6 +30,18 @@ export function useCamera() {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [devices, setDevices] = useState<CameraDevice[]>([]);
+  const [selectedDeviceId, setSelectedDeviceId] = useState("");
+  const [mirrored, setMirrored] = useState(true);
+
+  const refreshDevices = useCallback(async () => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    const cameras = (await navigator.mediaDevices.enumerateDevices())
+      .filter(({ kind }) => kind === "videoinput")
+      .map(({ deviceId, label }, index) => ({ deviceId, label: label || `Camera ${index + 1}` }));
+    setDevices(cameras);
+    setSelectedDeviceId((current) => current || cameras[0]?.deviceId || "");
+  }, []);
 
   const stop = useCallback(() => {
     setStream((activeStream) => {
@@ -34,7 +51,7 @@ export function useCamera() {
     setStatus("idle");
   }, []);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (deviceId?: string) => {
     if (!window.isSecureContext) {
       setError("Camera access requires HTTPS on another device. Open the secure LAN URL provided by npm run dev:https.");
       setStatus("error");
@@ -54,7 +71,9 @@ export function useCamera() {
       const nextStream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          facingMode: "user",
+          ...(deviceId || selectedDeviceId
+            ? { deviceId: { exact: deviceId || selectedDeviceId } }
+            : { facingMode: "user" }),
           width: { ideal: 1280 },
           height: { ideal: 960 },
         },
@@ -63,16 +82,44 @@ export function useCamera() {
         activeStream?.getTracks().forEach((track) => track.stop());
         return nextStream;
       });
+      const activeDeviceId = nextStream.getVideoTracks()[0]?.getSettings().deviceId;
+      if (activeDeviceId) setSelectedDeviceId(activeDeviceId);
       setStatus("ready");
+      await refreshDevices();
     } catch (cameraError) {
       setError(getCameraErrorMessage(cameraError));
       setStatus("error");
     }
-  }, []);
+  }, [refreshDevices, selectedDeviceId]);
+
+  const selectDevice = useCallback(async (deviceId: string) => {
+    setSelectedDeviceId(deviceId);
+    await start(deviceId);
+  }, [start]);
+
+  const flipCamera = useCallback(async () => {
+    if (devices.length < 2) return;
+    const currentIndex = devices.findIndex(({ deviceId }) => deviceId === selectedDeviceId);
+    const next = devices[(currentIndex + 1) % devices.length];
+    if (next) await selectDevice(next.deviceId);
+  }, [devices, selectDevice, selectedDeviceId]);
 
   useEffect(() => () => {
     stream?.getTracks().forEach((track) => track.stop());
   }, [stream]);
 
-  return { error, start, status, stop, stream };
+  return {
+    devices,
+    error,
+    flipCamera,
+    mirrored,
+    refreshDevices,
+    selectDevice,
+    selectedDeviceId,
+    setMirrored,
+    start,
+    status,
+    stop,
+    stream,
+  };
 }

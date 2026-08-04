@@ -1,6 +1,6 @@
 "use client";
 
-import type { BoothSettings, CapturePair, CaptureSchedule, Membership, RoomState, SessionComplete } from "@photobooth/shared";
+import type { BoothSettings, CapturePair, CaptureSchedule, Membership, ParticipantReaction, RoomState, SessionComplete } from "@photobooth/shared";
 import { useCallback, useEffect, useState } from "react";
 import { getSocket } from "@/lib/socket";
 import { clearMembership, readMembership, storeMembership } from "./membershipStorage";
@@ -14,6 +14,7 @@ export function useRoom(roomCode: string) {
   const [serverOffset, setServerOffset] = useState(0);
   const [status, setStatus] = useState<"connecting" | "joined" | "error">("connecting");
   const [error, setError] = useState<string | null>(null);
+  const [reaction, setReaction] = useState<{ participantId: string; reaction: ParticipantReaction; sentAt: number } | null>(null);
   const socket = getSocket();
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export function useRoom(roomCode: string) {
     socket.on("capture:pair-ready", setLatestPair);
     socket.on("session:complete", setCompletion);
     socket.on("session:cancelled", handleCancelled);
+    socket.on("participant:reaction", setReaction);
     socket.on("connect_error", handleConnectionError);
 
     const join = () => {
@@ -89,6 +91,7 @@ export function useRoom(roomCode: string) {
       socket.off("capture:pair-ready", setLatestPair);
       socket.off("session:complete", setCompletion);
       socket.off("session:cancelled", handleCancelled);
+      socket.off("participant:reaction", setReaction);
       socket.off("connect_error", handleConnectionError);
     };
   }, [roomCode, socket]);
@@ -101,6 +104,28 @@ export function useRoom(roomCode: string) {
 
   const updateSettings = useCallback((settings: BoothSettings) => {
     socket.emit("room:settings", { roomCode: roomCode.toUpperCase(), ...settings }, (result) => {
+      if (!result.ok) setError(result.error.message);
+    });
+  }, [roomCode, socket]);
+
+  const updateProfile = useCallback((displayName: string) => {
+    socket.emit("participant:profile", { roomCode: roomCode.toUpperCase(), displayName }, (result) => {
+      if (!result.ok) setError(result.error.message);
+    });
+  }, [roomCode, socket]);
+
+  const sendReaction = useCallback((nextReaction: ParticipantReaction) => {
+    socket.emit("participant:reaction", { roomCode: roomCode.toUpperCase(), reaction: nextReaction });
+  }, [roomCode, socket]);
+
+  const updatePolicy = useCallback((locked: boolean) => {
+    socket.emit("room:policy", { roomCode: roomCode.toUpperCase(), locked }, (result) => {
+      if (!result.ok) setError(result.error.message);
+    });
+  }, [roomCode, socket]);
+
+  const kickParticipant = useCallback((participantId: string) => {
+    socket.emit("room:kick", { roomCode: roomCode.toUpperCase(), participantId }, (result) => {
       if (!result.ok) setError(result.error.message);
     });
   }, [roomCode, socket]);
@@ -123,9 +148,23 @@ export function useRoom(roomCode: string) {
   }), [roomCode, socket]);
 
   const submitCapture = useCallback((payload: { sessionId: string; shotIndex: number; image: ArrayBuffer }) => {
-    socket.emit("capture:submit", { roomCode: roomCode.toUpperCase(), ...payload }, (result) => {
-      if (!result.ok) setError(result.error.message);
-    });
+    const request = { roomCode: roomCode.toUpperCase(), ...payload };
+    let completed = false;
+    const attempt = (retriesLeft: number) => {
+      const timeout = window.setTimeout(() => {
+        if (completed) return;
+        if (retriesLeft > 0) attempt(retriesLeft - 1);
+        else { completed = true; setError("Your photo upload timed out. Check the connection and try a new session."); }
+      }, 5_000);
+      socket.emit("capture:submit", request, (result) => {
+        if (completed) return;
+        window.clearTimeout(timeout);
+        if (result.ok || result.error.code === "DUPLICATE_CAPTURE") { completed = true; return; }
+        if (retriesLeft > 0 && result.error.code === "SERVER_ERROR") attempt(retriesLeft - 1);
+        else { completed = true; setError(result.error.message); }
+      });
+    };
+    attempt(2);
   }, [roomCode, socket]);
 
   const leave = useCallback(() => {
@@ -133,5 +172,5 @@ export function useRoom(roomCode: string) {
     clearMembership(roomCode.toUpperCase());
   }, [roomCode, socket]);
 
-  return { completion, error, latestPair, leave, membership, resetSession, room, schedule, serverOffset, socket, startSession, status, submitCapture, updatePresence, updateSettings };
+  return { completion, error, kickParticipant, latestPair, leave, membership, reaction, resetSession, room, schedule, sendReaction, serverOffset, socket, startSession, status, submitCapture, updatePolicy, updatePresence, updateProfile, updateSettings };
 }

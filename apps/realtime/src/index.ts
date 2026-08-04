@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { env } from "./config/env.js";
 import { createRealtimeServer } from "./createRealtimeServer.js";
+import { logger } from "./observability/logger.js";
+import { attachRedisRealtime } from "./infrastructure/redisRealtime.js";
 
 const tls = env.LOCAL_HTTPS
   ? {
@@ -9,7 +11,7 @@ const tls = env.LOCAL_HTTPS
     }
   : undefined;
 
-const { httpServer } = createRealtimeServer({
+const { httpServer, io } = createRealtimeServer({
   webOrigin: env.WEB_ORIGIN,
   allowLanOrigins: process.env.NODE_ENV !== "production",
   roomTtlMs: env.ROOM_TTL_MINUTES * 60_000,
@@ -18,7 +20,10 @@ const { httpServer } = createRealtimeServer({
   tls,
 });
 
+const closeRedis = await attachRedisRealtime(io, env.REDIS_URL);
+httpServer.on("close", () => void closeRedis());
+
 httpServer.listen(env.PORT, () => {
   const protocol = tls ? "https" : "http";
-  console.log(`Realtime server listening on ${protocol}://localhost:${env.PORT}`);
+  logger.info("Realtime server listening", { protocol, port: env.PORT });
 });

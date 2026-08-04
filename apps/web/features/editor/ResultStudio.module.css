@@ -1,0 +1,27 @@
+.studio { display: grid; gap: 18px; padding: 24px; border: 2px solid var(--color-foreground); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 7px 8px 0 var(--color-foreground); }
+.heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; }
+.heading span { color: var(--color-primary-hover); font-size: .78rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+.heading h2 { margin: 4px 0 0; }
+.heading p { max-width: 32ch; margin: 0; color: var(--color-muted); }
+.photoRail { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; }
+.photoRail button { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 2px solid transparent; border-radius: 10px; padding: 0; background: var(--color-camera); }
+.photoRail button.selected { border-color: var(--color-secondary); box-shadow: var(--focus-ring); }
+.photoRail img { width: 100%; height: 100%; object-fit: cover; }
+.photoRail span { position: absolute; right: 4px; bottom: 4px; display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; background: var(--color-foreground); color: white; font-size: .72rem; font-weight: 900; }
+.editorGrid { display: grid; gap: 18px; }
+.activePreview { overflow: hidden; min-height: 220px; border-radius: 16px; background: var(--color-camera); }
+.activePreview img { width: 100%; height: 100%; min-height: 220px; object-fit: cover; transition: filter 180ms ease, transform 180ms ease; }
+.editControls { display: grid; gap: 12px; }
+.editControls fieldset { padding: 0; border: 0; margin: 0; }
+.editControls legend, .editControls label { font-weight: 800; }
+.editControls label { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; }
+.editControls input { grid-column: 1 / -1; width: 100%; accent-color: var(--color-secondary); }
+.filterGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.filterGrid button, .orderActions button { min-height: 38px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-soft); padding: 7px 10px; font-weight: 800; }
+.filterGrid button[aria-pressed="true"] { border-color: var(--color-secondary); background: var(--color-secondary-soft); color: var(--color-secondary); }
+.orderActions, .exportActions { display: flex; flex-wrap: wrap; gap: 8px; }
+.orderActions button { display: inline-flex; align-items: center; gap: 6px; }
+.orderActions button:disabled { opacity: .4; }
+.message { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--color-success); font-weight: 800; }
+@media (min-width: 760px) { .editorGrid { grid-template-columns: minmax(240px, .8fr) 1.2fr; } }
+@media (max-width: 600px) { .heading { align-items: start; flex-direction: column; } .studio { padding: 18px; } }

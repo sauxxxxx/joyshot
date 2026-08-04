@@ -22,7 +22,13 @@
   gap: 10px;
 }
 
+.room > details { margin-bottom: 20px; }
 .videoArea { position: relative; }
+.connectionQuality { justify-self: end; margin-top: 9px; color: var(--color-muted); font-size: .78rem; font-weight: 900; text-transform: uppercase; }
+.connectionQuality::before { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: #9b8f82; content: ""; }
+.connectionQuality[data-quality="good"]::before { background: var(--color-success); }
+.connectionQuality[data-quality="fair"]::before { background: #c37c11; }
+.connectionQuality[data-quality="poor"]::before { background: var(--color-error); }
 
 .countdown {
   position: absolute;
@@ -58,6 +64,9 @@
 
 .countdown small { margin-top: 14px; font-size: 0.9rem; font-weight: 900; }
 
+.reactionCue { position: absolute; z-index: 11; right: 18px; bottom: 18px; display: flex; align-items: center; gap: 9px; border: 2px solid var(--color-foreground); border-radius: 999px; padding: 10px 14px; background: var(--color-surface); box-shadow: 4px 5px 0 var(--color-primary); font-weight: 900; animation: reaction-in 2.8s both; }
+@keyframes reaction-in { 0% { opacity: 0; transform: translateY(12px) scale(.85); } 12%, 78% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+
 .progressRow {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -84,6 +93,14 @@
 .boothSettings > div:first-child { display: flex; justify-content: space-between; gap: 12px; }
 .boothSettings > div:first-child span { color: var(--color-muted); font-size: .78rem; }
 .boothSettings > :global(section) { padding-block: 0; }
+
+.socialBar { display: grid; gap: 12px; align-items: end; margin-bottom: 22px; border: 1px solid var(--color-border); border-radius: 16px; padding: 14px; background: rgb(255 255 255 / 72%); }
+.socialBar label { display: grid; gap: 5px; color: var(--color-muted); font-size: .78rem; font-weight: 900; }
+.socialBar input { min-height: 42px; border: 1px solid var(--color-border); border-radius: 10px; padding: 8px 10px; background: white; }
+.reactions, .roomPolicy { display: flex; flex-wrap: wrap; gap: 7px; }
+.reactions button, .roomPolicy button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); padding: 8px 11px; font-weight: 800; }
+.reactions button { width: 44px; padding: 0; color: var(--color-primary-hover); }
+.roomPolicy button:last-child { color: var(--color-error); }
 
 .controlBar {
   display: grid;
@@ -127,6 +144,10 @@
 }
 
 .resultCopy { padding-top: 14px; }
+.result > :last-child { grid-column: 1 / -1; }
+.textOptions { display: grid; gap: 9px; margin: 16px 0; }
+.textOptions label { display: grid; gap: 5px; color: var(--color-muted); font-size: .82rem; font-weight: 900; }
+.textOptions input { min-height: 44px; border: 1px solid var(--color-border); border-radius: 11px; padding: 9px 11px; background: white; }
 .result h1 { margin-bottom: 16px; font-size: clamp(2.7rem, 7vw, 5rem); letter-spacing: -0.04em; }
 .resultCopy > p { max-width: 620px; color: var(--color-muted); font-size: 1.05rem; }
 
@@ -165,6 +186,8 @@
   .progressRow span { display: inline; }
   .controlBar { grid-template-columns: minmax(300px, 1fr) minmax(300px, auto); align-items: center; }
   .boothSettings { grid-template-columns: minmax(180px, .35fr) minmax(0, 1fr); align-items: center; }
+  .boothSettings > :last-child { grid-column: 1 / -1; }
+  .socialBar { grid-template-columns: minmax(180px, 1fr) auto auto; }
 }
 
 @media (min-width: 900px) {

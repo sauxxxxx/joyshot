@@ -1,5 +1,5 @@
 import type { CapturePair, CaptureSchedule, SessionComplete } from "./session.js";
-import type { BoothSettings, EventResult, Membership, RoomState } from "./room.js";
+import type { BoothSettings, EventResult, Membership, ParticipantReaction, RoomState } from "./room.js";
 import type {
   ForwardedSignalingMessage,
   IceCandidateData,
@@ -18,6 +18,16 @@ export interface ClientToServerEvents {
   "participant:presence": (
     payload: { roomCode: string; cameraReady?: boolean; ready?: boolean },
     callback: (result: EventResult<RoomState>) => void,
+  ) => void;
+  "participant:profile": (
+    payload: { roomCode: string; displayName: string }, callback: (result: EventResult<RoomState>) => void,
+  ) => void;
+  "participant:reaction": (payload: { roomCode: string; reaction: ParticipantReaction }) => void;
+  "room:policy": (
+    payload: { roomCode: string; locked: boolean }, callback: (result: EventResult<RoomState>) => void,
+  ) => void;
+  "room:kick": (
+    payload: { roomCode: string; participantId: string }, callback: (result: EventResult<RoomState>) => void,
   ) => void;
   "room:settings": (
     payload: BoothSettings & { roomCode: string },
@@ -46,6 +56,7 @@ export interface ServerToClientEvents {
   "server:ready": (payload: { connectedAt: number }) => void;
   "room:state": (state: RoomState) => void;
   "room:closed": (payload: { message: string }) => void;
+  "participant:reaction": (payload: { participantId: string; reaction: ParticipantReaction; sentAt: number }) => void;
   "capture:scheduled": (schedule: CaptureSchedule) => void;
   "capture:pair-ready": (pair: CapturePair) => void;
   "session:complete": (payload: SessionComplete) => void;
@@ -61,6 +72,8 @@ export const socketEvents = {
   roomJoin: "room:join",
   roomState: "room:state",
   participantPresence: "participant:presence",
+  participantProfile: "participant:profile",
+  participantReaction: "participant:reaction",
   roomSettings: "room:settings",
   sessionStart: "session:start",
   sessionReset: "session:reset",

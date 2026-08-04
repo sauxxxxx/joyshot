@@ -2,9 +2,13 @@ import {
   candidateMessageSchema,
   descriptionMessageSchema,
   peerReadyMessageSchema,
+  participantProfileSchema,
+  participantReactionSchema,
   roomCodeSchema,
   roomJoinSchema,
   roomPresenceSchema,
+  roomPolicySchema,
+  roomKickSchema,
   roomSettingsSchema,
   sessionStartSchema,
   type ClientToServerEvents,
@@ -16,6 +20,7 @@ import {
 import type { Server, Socket } from "socket.io";
 import { RoomError, RoomRepository } from "../room/roomRepository.js";
 import { SessionCoordinator } from "../session/captureSessionCoordinator.js";
+import { SocketRateLimiter } from "../security/socketRateLimiter.js";
 
 type PhotoboothServer = Server<ClientToServerEvents, ServerToClientEvents>;
 type PhotoboothSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
@@ -26,9 +31,11 @@ export function registerSocketHandlers(
   rooms: RoomRepository,
   sessions: SessionCoordinator,
 ) {
+  const rateLimiter = new SocketRateLimiter();
   socket.emit("server:ready", { connectedAt: Date.now() });
 
   socket.on("room:create", (callback) => {
+    if (!rateLimiter.allow("room:create", 5, 60_000)) return callback(failure("RATE_LIMITED", "Too many rooms were created. Wait a moment and try again."));
     try {
       const membership = rooms.create(socket.id);
       void socket.join(membership.room.code);
@@ -40,6 +47,7 @@ export function registerSocketHandlers(
   });
 
   socket.on("room:join", (payload, callback) => {
+    if (!rateLimiter.allow("room:join", 20, 60_000)) return callback(failure("RATE_LIMITED", "Too many join attempts. Wait a moment and try again."));
     const parsed = roomJoinSchema.safeParse(payload);
     if (!parsed.success) return callback(failure("INVALID_ROOM_CODE", parsed.error.issues[0]?.message ?? "Invalid room code."));
     try {
@@ -67,7 +75,53 @@ export function registerSocketHandlers(
     callback({ ok: true, data: state });
   });
 
+  socket.on("participant:profile", (payload, callback) => {
+    if (!rateLimiter.allow("participant:profile", 12, 60_000)) return callback(failure("RATE_LIMITED", "Wait a moment before changing your name again."));
+    const parsed = participantProfileSchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) return callback(failure("NOT_IN_ROOM", "Join the room before updating your name."));
+    found.participant.displayName = parsed.data.displayName;
+    const state = rooms.publicState(found.room);
+    io.to(found.room.code).emit("room:state", state);
+    callback({ ok: true, data: state });
+  });
+
+  socket.on("participant:reaction", (payload) => {
+    if (!rateLimiter.allow("participant:reaction", 12, 10_000)) return;
+    const parsed = participantReactionSchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) return;
+    socket.to(found.room.code).emit("participant:reaction", { participantId: found.participant.id, reaction: parsed.data.reaction, sentAt: Date.now() });
+  });
+
+  socket.on("room:policy", (payload, callback) => {
+    const parsed = roomPolicySchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) return callback(failure("NOT_IN_ROOM", "Join the room before changing its policy."));
+    if (found.participant.id !== found.room.hostParticipantId) return callback(failure("HOST_ONLY", "Only the host can lock the booth."));
+    found.room.locked = parsed.data.locked;
+    const state = rooms.publicState(found.room);
+    io.to(found.room.code).emit("room:state", state);
+    callback({ ok: true, data: state });
+  });
+
+  socket.on("room:kick", (payload, callback) => {
+    const parsed = roomKickSchema.safeParse(payload);
+    const found = rooms.getBySocket(socket.id);
+    if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) return callback(failure("NOT_IN_ROOM", "Join the room before removing someone."));
+    if (found.participant.id !== found.room.hostParticipantId) return callback(failure("HOST_ONLY", "Only the host can remove a guest."));
+    const target = found.room.participants.get(parsed.data.participantId);
+    if (!target || target.role === "host") return callback(failure("INVALID_PARTICIPANT", "That guest is no longer in the room."));
+    io.to(target.socketId).emit("room:closed", { message: "The host removed you from this booth." });
+    void io.sockets.sockets.get(target.socketId)?.leave(found.room.code);
+    rooms.removeParticipant(found.room, target);
+    const state = rooms.publicState(found.room);
+    io.to(found.room.code).emit("room:state", state);
+    callback({ ok: true, data: state });
+  });
+
   socket.on("room:settings", (payload, callback) => {
+    if (!rateLimiter.allow("room:settings", 20, 60_000)) return callback(failure("RATE_LIMITED", "Too many setting changes. Wait a moment and try again."));
     const parsed = roomSettingsSchema.safeParse(payload);
     const found = rooms.getBySocket(socket.id);
     if (!parsed.success || !found || found.room.code !== parsed.data.roomCode) {
@@ -100,6 +154,7 @@ export function registerSocketHandlers(
   });
 
   socket.on("capture:submit", (payload, callback) => {
+    if (!rateLimiter.allow("capture:submit", 12, 60_000)) return callback(failure("RATE_LIMITED", "Too many photo uploads were submitted."));
     const code = roomCodeSchema.safeParse(payload.roomCode);
     const found = rooms.getBySocket(socket.id);
     if (!code.success || !found || found.room.code !== code.data) return callback(failure("NOT_IN_ROOM", "Join the room before submitting a photo."));
@@ -128,6 +183,7 @@ export function registerSocketHandlers(
   });
 
   socket.on("disconnect", () => {
+    rateLimiter.clear();
     const room = rooms.markDisconnected(socket.id, (changedRoom) => {
       if (changedRoom.participants.size === 0 || !rooms.get(changedRoom.code)) io.to(changedRoom.code).emit("room:closed", { message: "This booth has closed." });
       else io.to(changedRoom.code).emit("room:state", rooms.publicState(changedRoom));
