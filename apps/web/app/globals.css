@@ -1,8 +1,8 @@
 :root {
-  --font-heading: "Fredoka";
-  --font-body: "Nunito";
+  --font-heading: Georgia;
+  --font-body: "Helvetica Neue";
   --color-background: #f4efe6;
-  --color-surface: #ffffff;
+  --color-surface: #faf6ee;
   --color-surface-soft: #eee6d9;
   --color-primary: #8f1d2c;
   --color-primary-hover: #701421;
@@ -18,10 +18,10 @@
   --color-camera: #171513;
   --shadow-sm: 0 8px 24px rgb(48 33 29 / 8%);
   --shadow-md: 0 24px 70px rgb(48 33 29 / 15%);
-  --radius-sm: 12px;
-  --radius-md: 20px;
-  --radius-lg: 28px;
-  --focus-ring: 0 0 0 4px rgb(105 72 232 / 24%);
+  --radius-sm: 4px;
+  --radius-md: 10px;
+  --radius-lg: 18px;
+  --focus-ring: 0 0 0 4px rgb(143 29 44 / 20%);
 }
 
 * {
@@ -113,7 +113,7 @@ a[href] {
   justify-content: center;
   gap: 10px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 4px;
   padding: 12px 20px;
   font-weight: 800;
   transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease,

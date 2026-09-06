@@ -1,4 +1,5 @@
-.invite { border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
+.invite { position: relative; border: 1px solid #9f8d7e; border-radius: 2px; background: #f2e6cf; box-shadow: 5px 6px 0 #3f30291c; transform: rotate(-.35deg); }
+.invite::before, .invite::after { position: absolute; top: -1px; bottom: -1px; width: 8px; background: radial-gradient(circle, var(--color-background) 0 3px, transparent 3.5px) center / 8px 16px; content: ""; }.invite::before { left: -4px; }.invite::after { right: -4px; }
 .invite summary { display: flex; min-height: 46px; align-items: center; gap: 8px; padding: 10px 14px; font-weight: 900; cursor: pointer; }
 .body { display: grid; gap: 16px; align-items: center; padding: 0 16px 16px; }
 .body img { width: 132px; height: 132px; border: 1px solid var(--color-border); border-radius: 10px; }

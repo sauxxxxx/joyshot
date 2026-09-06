@@ -10,9 +10,12 @@
 
 .roomHeader h1 {
   margin: 0;
+  font-family: Georgia, serif;
   font-size: clamp(2.3rem, 6vw, 4rem);
   letter-spacing: -0.03em;
+  font-weight: 400;
 }
+.roomNote { display: flex; align-items: center; gap: 7px; margin: 6px 0 0; color: var(--color-muted); font-size: .82rem; font-weight: 800; }
 
 .headerActions,
 .primaryControls,
@@ -158,13 +161,13 @@
   min-height: 440px;
   place-items: center;
   border: 2px solid var(--color-foreground);
-  border-radius: var(--radius-lg);
+  border-radius: 0;
   padding: 24px;
   background: #e7dfd8;
   box-shadow: 9px 10px 0 var(--color-foreground);
 }
 
-.stripPreview img { display: block; width: min(100%, 520px); height: auto; box-shadow: 0 18px 42px rgb(24 32 51 / 24%); }
+.stripPreview img { display: block; width: min(100%, 520px); height: auto; box-shadow: 0 18px 42px rgb(24 32 51 / 24%); transform: rotate(-1.2deg); transition: transform 180ms ease; }.stripPreview img:hover { transform: translateY(-5px) rotate(0); }
 .largeSpinner { color: var(--color-secondary); }
 
 .message {

@@ -1,0 +1,26 @@
+.showcase { overflow: hidden; padding: 110px max(20px, calc((100vw - 1200px) / 2)); background-color: #e9e5dc; background-image: linear-gradient(#99aab622 1px, transparent 1px), linear-gradient(90deg, #99aab622 1px, transparent 1px); background-size: 32px 32px; }
+.copy { display: flex; align-items: end; justify-content: space-between; gap: 28px; }
+.copy h2 { margin: 0; font-family: Georgia, serif; font-size: clamp(2.6rem, 5vw, 4.8rem); font-weight: 400; letter-spacing: -.055em; line-height: .94; }
+.copy p { width: min(380px, 100%); margin: 0; color: var(--color-muted); }
+.stage { position: relative; height: 590px; margin-top: 28px; outline: none; perspective: 1400px; touch-action: pan-y; }
+.stage:focus-visible { outline: 1px dashed var(--color-primary); outline-offset: 8px; }
+.strip { --distance: max(var(--offset), calc(var(--offset) * -1)); position: absolute; top: 50%; left: 50%; width: 205px; height: 535px; border: 0; padding: 0; background: transparent; filter: saturate(.76); opacity: calc(1 - var(--distance) * .16); transform: translate(calc(-50% + var(--offset) * clamp(120px, 15vw, 190px)), -50%) rotate(var(--tilt)) scale(calc(1 - var(--distance) * .09)); transform-origin: center bottom; transition: transform 480ms cubic-bezier(.2,.82,.2,1), opacity 320ms ease, filter 320ms ease; }
+.strip[data-hidden="true"] { visibility: hidden; opacity: 0; }
+.strip:hover { filter: saturate(.9); }
+.strip.active { z-index: 6; filter: saturate(.9); opacity: 1; transform: translate(-50%, -52%) rotate(0deg) scale(1.08); }
+.stripInner { position: relative; display: block; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 460ms cubic-bezier(.2,.82,.2,1); }
+.stripInner.flipped { transform: rotateY(180deg); }
+.front, .back { position: absolute; inset: 0; display: grid; overflow: hidden; border: 1px solid #6f6258; background: var(--paper); box-shadow: 0 22px 34px #33231b35; backface-visibility: hidden; }
+.front img { width: 100%; height: 100%; object-fit: cover; }
+.back { align-content: center; gap: 10px; padding: 28px; color: #382924; text-align: left; transform: rotateY(180deg); }
+.back::before { position: absolute; inset: 12px; border: 1px dashed #8c7d7180; content: ""; }
+.back strong, .back small, .back i { position: relative; }.back strong { font-family: Georgia, serif; font-size: 1.7rem; line-height: 1; }.back small { color: #6c5f57; }.back i { margin-top: 18px; font-family: monospace; font-size: .62rem; font-style: normal; text-transform: uppercase; }
+.arrow { position: absolute; z-index: 10; top: 50%; display: grid; width: 52px; height: 52px; place-items: center; border: 1px solid #7c675c; border-radius: 50%; background: #f4efe6e8; color: #6e1c2a; font-size: 1.5rem; transform: translateY(-50%); }
+.previous { left: 0; }.next { right: 0; }
+.choice { display: grid; max-width: 760px; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 18px; margin: 0 auto; border-top: 1px solid #9c8d82; border-bottom: 1px solid #9c8d82; padding: 15px 0; }
+.choice > span { font-family: monospace; font-size: .72rem; }.choice > div { display: grid; }.choice strong { font-family: Georgia, serif; font-size: 1.35rem; }.choice small { color: var(--color-muted); }
+.choice button, .choice a { min-height: 42px; border: 1px solid #5e4a41; padding: 10px 14px; background: transparent; font-size: .74rem; font-weight: 900; text-transform: uppercase; }
+.choice a { display: inline-flex; align-items: center; background: var(--color-primary); color: #fff8ed; }
+.renderStatus { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+@media (max-width: 720px) { .showcase { padding-block: 78px; }.copy { align-items: start; flex-direction: column; }.stage { height: 475px; margin-inline: -20px; }.strip { width: 154px; height: 402px; transform: translate(calc(-50% + var(--offset) * 112px), -50%) rotate(var(--tilt)) scale(calc(1 - var(--distance) * .1)); }.strip.active { transform: translate(-50%, -52%) rotate(0deg) scale(1.04); }.arrow { top: auto; bottom: 0; width: 46px; height: 46px; }.previous { left: 20px; }.next { right: 20px; }.choice { grid-template-columns: auto 1fr; }.choice button, .choice a { width: 100%; justify-content: center; }.choice a { display: flex; }.choice small { font-size: .75rem; } }
+@media (prefers-reduced-motion: reduce) { .strip, .stripInner { transition: none; } }

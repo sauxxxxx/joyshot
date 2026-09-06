@@ -1,17 +1,47 @@
+"use client";
+
 import { Check } from "lucide-react";
 import type { CSSProperties } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { drawSoloStrip } from "./drawSoloStrip";
 import { stripThemes, type StripThemeId } from "./stripThemes";
 import styles from "./StripThemePicker.module.css";
 
 interface StripThemePickerProps {
   label?: string;
   onChange: (theme: StripThemeId) => void;
+  photos?: string[];
   value: StripThemeId;
 }
 
 const featuredThemes = Object.keys(stripThemes) as StripThemeId[];
 
-export function StripThemePicker({ label = "Choose your strip style", onChange, value }: StripThemePickerProps) {
+const demoPhotos = ["/images/demo-friends-blue.webp", "/images/demo-friends-sage.webp", "/images/demo-solo-clay.webp", "/images/demo-couple-lilac.webp"];
+
+function shrink(source: string) {
+  return new Promise<string>((resolve) => {
+    const image = new Image();
+    image.onload = () => { const canvas = document.createElement("canvas"); canvas.width = 94; canvas.height = Math.round(image.height * canvas.width / image.width); const context = canvas.getContext("2d"); context?.drawImage(image, 0, 0, canvas.width, canvas.height); resolve(canvas.toDataURL("image/webp", .76)); };
+    image.onerror = () => resolve(""); image.src = source;
+  });
+}
+
+export function StripThemePicker({ label = "Choose your strip style", onChange, photos, value }: StripThemePickerProps) {
+  const [previews, setPreviews] = useState<Partial<Record<StripThemeId, string>>>({});
+  const previewPhotos = useMemo(() => photos?.length === 4 ? photos : demoPhotos, [photos]);
+  useEffect(() => {
+    let live = true; setPreviews({});
+    const render = async () => {
+      for (const themeId of featuredThemes) {
+        try {
+          const strip = await drawSoloStrip(previewPhotos, themeId, "strip", { caption: stripThemes[themeId].label });
+          const preview = await shrink(strip);
+          if (live && preview) setPreviews((current) => ({ ...current, [themeId]: preview }));
+        } catch { /* The photographic fallback remains usable. */ }
+      }
+    };
+    void render(); return () => { live = false; };
+  }, [previewPhotos]);
   return (
     <section className={styles.picker} aria-labelledby="strip-style-heading">
       <div className={styles.heading}>
@@ -49,11 +79,11 @@ export function StripThemePicker({ label = "Choose your strip style", onChange, 
                 } as CSSProperties}
                 aria-hidden="true"
               >
-                <span className={styles.previewTitle}>JoyShot</span>
-                <span className={styles.photo} />
-                <span className={styles.photo} />
-                <span className={styles.photo} />
-                <span className={styles.previewFooter}>04 · moments</span>
+                {previews[themeId] ? <img className={styles.renderedPreview} src={previews[themeId]} alt="" /> : <>
+                  <span className={styles.previewTitle}>JoyShot</span>
+                  {previewPhotos.map((photo, index) => <img className={styles.photo} src={photo} alt="" key={`${photo}-${index}`} />)}
+                  <span className={styles.previewFooter}>04 · moments</span>
+                </>}
               </span>
               <span className={styles.cardCopy}>
                 <strong>{theme.label}</strong>

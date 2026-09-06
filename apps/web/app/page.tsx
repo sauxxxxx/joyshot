@@ -1,36 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
 import { JoyShotLogo } from "@/components/brand/JoyShotLogo";
+import { FrameShowcase } from "@/components/landing/FrameShowcase";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import styles from "./page.module.css";
 
 export default function HomePage() {
   return <>
     <a className="skipLink" href="#main-content">Skip to main content</a>
-    <SiteHeader />
+    <SiteHeader overlay />
     <main id="main-content">
       <section className={styles.hero}>
-        <div className={styles.heroNote}><span>Open daily</span><strong>00:00—24:00</strong></div>
-        <div className={styles.heroTitle}><h1>Step inside.</h1><p>Four photos. One strip.<br />Keep it forever.</p></div>
-        <div className={styles.boothMachine}>
-          <Image src="/images/joyshot-booth-machine-v2.webp" alt="A restored oxblood photo booth with a curtain, camera and printed strip" width={1023} height={1537} priority sizes="(max-width: 700px) 86vw, 510px" />
-          <div className={styles.boothControls}>
-            <Link href="/solo"><span>Press to begin</span><b aria-hidden="true" /></Link>
-            <Link href="/room">Bring someone with you →</Link>
-          </div>
-        </div>
-        <p className={styles.privacySlip}>No account. Nothing uploaded.<br />Your camera stays yours.</p>
-        <span className={styles.heroIndex}>JS / 001</span>
+        <picture className={styles.heroPicture}>
+          <source media="(max-width: 640px)" srcSet="/images/joyshot-hero-studio-mobile-v3.webp" />
+          <img src="/images/joyshot-hero-studio-v3.webp" alt="A contemporary oxblood JoyShot booth in a quiet daylight studio" width="1672" height="941" fetchPriority="high" />
+        </picture>
+        <div className={styles.heroTitle}><h1>Four photos.<br />Keep the good ones.</h1><p>No account. Nothing uploaded. Just step in.</p></div>
+        <Link className={styles.heroHotspot} href="/solo" aria-label="Open the JoyShot booth from the red button"><span>Open booth</span></Link>
+        <Link className={styles.heroTogether} href="/room">Or bring someone with you →</Link>
       </section>
 
-      <section className={`container ${styles.process}`} id="how-it-works">
-        <header><h2>Four frames.<br />No pressure.</h2><p>Bad third photo? Take number three again. Keep moving when it feels right.</p></header>
-        <figure>
-          <Image src="/images/joyshot-contact-sheet.webp" alt="A four-frame contact sheet showing a photo session and one marked retake" width={1600} height={878} sizes="(max-width: 700px) 100vw, 72vw" />
-          <figcaption><span>1 — Camera opens</span><span>2 — Countdown runs</span><span>3 — Retake this one</span><span>4 — Keep the strip</span></figcaption>
-        </figure>
-        <Link className={styles.underlinedLink} href="/solo">Try a four-frame session →</Link>
-      </section>
+      <FrameShowcase />
 
       <section className={styles.editing}>
         <div className={styles.editingImage}><Image src="/images/joyshot-editing-studio-v2.webp" alt="Four contemporary portraits beside a tablet with crop and filter controls" fill sizes="(max-width: 800px) 100vw, 62vw" /></div>

@@ -1,15 +1,26 @@
 "use client";
 
-import { Expand, ImagePlus, PartyPopper, Play, QrCode, Trash2 } from "lucide-react";
+import { Expand, ImagePlus, LoaderCircle, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
+import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { defaultEventProfile, readEventProfile, storeEventProfile, type EventProfile } from "./eventProfile";
 import styles from "./EventSetup.module.css";
 
+const demoPhotos = ["/images/demo-friends-blue.webp", "/images/demo-friends-sage.webp", "/images/demo-solo-clay.webp", "/images/demo-couple-lilac.webp"];
+
 export function EventSetup() {
   const [profile, setProfile] = useState<EventProfile>(defaultEventProfile);
+  const [preview, setPreview] = useState("");
   const [saved, setSaved] = useState(false);
+  const previewRef = useRef<HTMLElement>(null);
   useEffect(() => { setProfile(readEventProfile() ?? defaultEventProfile); }, []);
+  useEffect(() => {
+    let live = true; setPreview("");
+    void drawSoloStrip(demoPhotos, profile.frame, "strip", { title: profile.name, caption: profile.caption, logoSource: profile.logoSource, brandColor: profile.brandColor }).then((image) => live && setPreview(image));
+    return () => { live = false; };
+  }, [profile]);
   const update = <K extends keyof EventProfile>(key: K, value: EventProfile[K]) => setProfile((current) => ({ ...current, [key]: value }));
   const save = () => { storeEventProfile(profile); setSaved(true); window.setTimeout(() => setSaved(false), 1800); };
   const uploadLogo = (file?: File) => {
@@ -17,25 +28,24 @@ export function EventSetup() {
     if (file.size > 600_000) return window.alert("Choose a logo smaller than 600 KB.");
     const reader = new FileReader(); reader.onload = () => update("logoSource", String(reader.result)); reader.readAsDataURL(file);
   };
-  const fullscreen = () => void document.documentElement.requestFullscreen?.();
   return <section className={styles.setup} aria-labelledby="event-title">
-    <div className={styles.intro}><span className="eyebrow"><PartyPopper size={17} /> Event mode</span><h1 id="event-title">Make JoyShot your guest booth.</h1><p>Brand the strip, run a full-screen kiosk, and keep an optional private gallery on this device.</p></div>
-    <ol className={styles.flow} aria-label="Event booth workflow"><li><span>1</span>Event details</li><li><span>2</span>Brand the booth</li><li><span>3</span>Preview</li><li><span>4</span>Launch kiosk</li><li><span>5</span>Guest gallery</li></ol>
+    <header className={styles.intro}><h1 id="event-title">Build the guest booth while you watch.</h1><p>Name it, frame it, and launch it. The preview changes as you work; guests never see these controls.</p></header>
+    <StripThemePicker label="Choose the event frame" onChange={(frame) => update("frame", frame)} value={profile.frame} />
     <div className={styles.workspace}>
       <form onSubmit={(event) => { event.preventDefault(); save(); }}>
-        <div className={styles.formHeading}><span>Admin setup</span><h2>Customize your event</h2><p>Guests will never see these controls.</p></div>
+        <h2>Event details</h2>
         <label>Event name<input maxLength={34} value={profile.name} onChange={(event) => update("name", event.target.value)} /></label>
         <label>Strip caption<input maxLength={64} value={profile.caption} onChange={(event) => update("caption", event.target.value)} /></label>
-        <label>Brand color<input className={styles.color} type="color" value={profile.brandColor} onChange={(event) => update("brandColor", event.target.value)} /></label>
-        <label className={styles.file}><ImagePlus size={18} /> Event logo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadLogo(event.target.files?.[0])} /></label>
+        <label>Accent color<input className={styles.color} type="color" value={profile.brandColor} onChange={(event) => update("brandColor", event.target.value)} /></label>
+        <label className={styles.file}><ImagePlus size={18} /> Add event logo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadLogo(event.target.files?.[0])} /></label>
         {profile.logoSource && <button className={styles.remove} type="button" onClick={() => update("logoSource", undefined)}><Trash2 size={16} /> Remove logo</button>}
-        <label>Local gallery retention<select value={profile.retentionHours} onChange={(event) => update("retentionHours", Number(event.target.value) as EventProfile["retentionHours"])}><option value="24">24 hours</option><option value="168">7 days</option><option value="0">Until manually deleted</option></select></label>
-        <button className="button buttonPrimary" type="submit">Save event setup</button>{saved && <span className={styles.saved} role="status">Event setup saved</span>}
+        <label>Keep the local gallery for<select value={profile.retentionHours} onChange={(event) => update("retentionHours", Number(event.target.value) as EventProfile["retentionHours"])}><option value="24">24 hours</option><option value="168">7 days</option><option value="0">Until manually deleted</option></select></label>
+        <button className="button buttonPrimary" type="submit">Save event setup</button>{saved && <span className={styles.saved} role="status">Saved on this device</span>}
       </form>
-      <aside className={styles.preview} style={{ "--event-color": profile.brandColor } as React.CSSProperties}>
-        {profile.logoSource ? <img src={profile.logoSource} alt="Uploaded event logo preview" /> : <PartyPopper size={42} />}
-        <span>JoyShot event</span><h2>{profile.name || "Your event"}</h2><p>{profile.caption}</p>
-        <div className={styles.actions}><Link className="button buttonPrimary" href="/solo?event=1" onClick={save}><Play size={18} /> Launch guest kiosk</Link><button className="button buttonSecondary" type="button" onClick={fullscreen}><Expand size={18} /> Preview full screen</button><Link className="button buttonSecondary" href="/gallery"><QrCode size={18} /> Open gallery</Link></div>
+      <aside className={styles.preview} ref={previewRef} style={{ "--event-color": profile.brandColor } as React.CSSProperties}>
+        <div className={styles.previewCopy}><span>{profile.name || "Your event"}</span><p>{profile.caption || "Your caption"}</p></div>
+        <div className={styles.strip}>{preview ? <img src={preview} alt={`Live ${profile.frame} event strip preview`} /> : <LoaderCircle className={styles.spinner} aria-label="Rendering preview" />}</div>
+        <div className={styles.actions}><Link className="button buttonPrimary" href={`/solo?event=1&frame=${profile.frame}`} onClick={save}><Play size={18} /> Launch guest booth</Link><button className="button buttonSecondary" type="button" onClick={() => void previewRef.current?.requestFullscreen?.()}><Expand size={18} /> Full screen</button></div>
       </aside>
     </div>
   </section>;

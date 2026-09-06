@@ -1,10 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { PwaClient } from "@/components/pwa/PwaClient";
-import "@fontsource/fredoka/600.css";
-import "@fontsource/fredoka/700.css";
-import "@fontsource/nunito/400.css";
-import "@fontsource/nunito/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -20,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "JoyShot — Make a little moment last",
     description: "A private online photo booth for solo, together, and event moments.",
-    images: ["/images/joyshot-booth-machine-v2.webp"],
+    images: ["/images/joyshot-hero-studio-v3.webp"],
   },
 };
 

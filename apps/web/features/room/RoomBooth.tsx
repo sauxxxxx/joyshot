@@ -165,7 +165,6 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
     return (
       <section className={styles.result} aria-labelledby="room-result-title">
         <div className={styles.resultCopy}>
-          <span className="eyebrow"><Check size={17} /> Both photo sets received</span>
           <h1 id="room-result-title">Your moment, together.</h1>
           <p>Both people receive the same ordered photos. Pick a frame and download your copy.</p>
           <div className={styles.textOptions}><label>Strip title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Caption<input maxLength={64} placeholder="Optional message" value={caption} onChange={(event) => setCaption(event.target.value)} /></label></div>
@@ -185,7 +184,7 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
   return (
     <section className={styles.room} aria-labelledby="room-title">
       <header className={styles.roomHeader}>
-        <div><span className="eyebrow"><UsersRound size={17} /> Private booth</span><h1 id="room-title">Room {roomCode}</h1></div>
+        <div><h1 id="room-title">Room {roomCode}</h1><p className={styles.roomNote}><UsersRound size={16} /> Private two-person booth</p></div>
         <div className={styles.headerActions}><button className="button buttonSecondary" type="button" onClick={() => void copyRoom()}><Clipboard size={18} />{copied ? "Link copied" : "Copy invite"}</button><button className="button buttonGhost" type="button" onClick={leave}><DoorOpen size={18} /> Leave</button></div>
       </header>
       <InviteCard roomCode={roomCode} />

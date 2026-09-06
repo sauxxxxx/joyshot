@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowRight, Film, ImagePlus, RectangleVertical, RefreshCcw, Save, Share2, Square, Video } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { saveGalleryItem, type GalleryItem } from "@/features/gallery/galleryStore";
 import { createGif, createWebm, downloadBlob } from "@/features/media/exportAnimation";
 import { createSocialImage } from "@/features/media/exportSocialImage";
@@ -31,6 +31,7 @@ export function ResultStudio({ photos, strip, title, mode, onEditsChange, onReta
   const [selected, setSelected] = useState(0);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const drag = useRef<{ x: number; y: number; offsetX: number; offsetY: number } | null>(null);
   const active = edits[selected];
 
   const update = (patch: Partial<PhotoEdit>) => {
@@ -52,7 +53,7 @@ export function ResultStudio({ photos, strip, title, mode, onEditsChange, onReta
 
   return (
     <section className={styles.studio} aria-labelledby="editor-title">
-      <div className={styles.heading}><div><span>Edit every frame</span><h2 id="editor-title">Finish it your way.</h2></div><p>{socialHint}</p></div>
+      <div className={styles.heading}><h2 id="editor-title">Finish it your way.</h2><p>{socialHint}</p></div>
       <div className={styles.photoRail} role="list" aria-label="Captured photos">
         {edits.map((edit, index) => <button key={`${edit.source.slice(-16)}-${index}`} type="button" role="listitem"
           className={index === selected ? styles.selected : ""} onClick={() => setSelected(index)} aria-label={`Edit photo ${index + 1}`}>
@@ -60,15 +61,18 @@ export function ResultStudio({ photos, strip, title, mode, onEditsChange, onReta
         </button>)}
       </div>
       {active && <div className={styles.editorGrid}>
-        <div className={styles.activePreview}><img src={active.source} style={{ filter: photoFilterCss(active), transform: `scale(${active.zoom}) translate(${active.offsetX}%, ${active.offsetY}%)` }} alt={`Editing photo ${selected + 1}`} /></div>
+        <div className={styles.activePreview} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); drag.current = { x: event.clientX, y: event.clientY, offsetX: active.offsetX, offsetY: active.offsetY }; }} onPointerMove={(event) => {
+          if (!drag.current) return; const bounds = event.currentTarget.getBoundingClientRect();
+          update({ offsetX: Math.max(-50, Math.min(50, Math.round(drag.current.offsetX + (event.clientX - drag.current.x) / bounds.width * 100))), offsetY: Math.max(-50, Math.min(50, Math.round(drag.current.offsetY + (event.clientY - drag.current.y) / bounds.height * 100))) });
+        }} onPointerUp={() => { drag.current = null; }} onPointerCancel={() => { drag.current = null; }}><img src={active.source} style={{ filter: photoFilterCss(active), transform: `scale(${active.zoom}) translate(${active.offsetX}%, ${active.offsetY}%)` }} alt={`Editing photo ${selected + 1}`} /><span>Drag to reposition</span></div>
         <div className={styles.editControls}>
-          <fieldset><legend>Filter</legend><div className={styles.filterGrid}>{filters.map((filter) => <button key={filter.id} type="button" aria-pressed={active.filter === filter.id} onClick={() => update({ filter: filter.id })}>{filter.label}</button>)}</div></fieldset>
+          <fieldset><legend>Filter</legend><div className={styles.filterGrid}>{filters.map((filter) => <button key={filter.id} type="button" aria-pressed={active.filter === filter.id} onClick={() => update({ filter: filter.id })}><img src={active.source} style={{ filter: photoFilterCss({ ...active, filter: filter.id }) }} alt="" /><span>{filter.label}</span></button>)}</div></fieldset>
           <label>Brightness <output>{active.brightness}%</output><input type="range" min="60" max="140" value={active.brightness} onChange={(event) => update({ brightness: Number(event.target.value) })} /></label>
           <label>Contrast <output>{active.contrast}%</output><input type="range" min="70" max="150" value={active.contrast} onChange={(event) => update({ contrast: Number(event.target.value) })} /></label>
           <label>Zoom <output>{active.zoom.toFixed(1)}×</output><input type="range" min="1" max="2" step="0.1" value={active.zoom} onChange={(event) => update({ zoom: Number(event.target.value) })} /></label>
           <label>Horizontal position <output>{active.offsetX}</output><input type="range" min="-50" max="50" value={active.offsetX} onChange={(event) => update({ offsetX: Number(event.target.value) })} /></label>
           <label>Vertical position <output>{active.offsetY}</output><input type="range" min="-50" max="50" value={active.offsetY} onChange={(event) => update({ offsetY: Number(event.target.value) })} /></label>
-          <div className={styles.orderActions}><button type="button" onClick={() => move(-1)} disabled={selected === 0}><ArrowLeft size={17} /> Move left</button><button type="button" onClick={() => move(1)} disabled={selected === edits.length - 1}>Move right <ArrowRight size={17} /></button>{onRetake && <button type="button" onClick={() => onRetake(selected)}><RefreshCcw size={17} /> Retake</button>}</div>
+          <div className={styles.orderActions}><button type="button" onClick={() => move(-1)} disabled={selected === 0}><ArrowLeft size={17} /> Move left</button><button type="button" onClick={() => move(1)} disabled={selected === edits.length - 1}>Move right <ArrowRight size={17} /></button><button type="button" onClick={() => update(createPhotoEdit(active.source))}><RefreshCcw size={17} /> Reset frame</button>{onRetake && <button type="button" onClick={() => onRetake(selected)}><RefreshCcw size={17} /> Retake</button>}</div>
         </div>
       </div>}
       <div className={styles.exportActions}>
