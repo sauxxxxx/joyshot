@@ -23,7 +23,7 @@ export function PwaClient() {
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
-  const isBoothRoute = pathname === "/solo" || pathname === "/together";
+  const isBoothRoute = pathname === "/solo" || pathname === "/room" || pathname.startsWith("/room/");
   if (!prompt || dismissed || !isBoothRoute) return null;
   const dismiss = () => { sessionStorage.setItem("joyshot-install-dismissed", "true"); setDismissed(true); };
   return <aside className={styles.prompt} aria-label="Install JoyShot"><Download size={20} /><div><strong>Install JoyShot</strong><span>Open the booth full-screen from your home screen.</span></div><button type="button" onClick={() => void prompt.prompt().then(() => setDismissed(true))}>Install</button><button className={styles.close} type="button" onClick={dismiss} aria-label="Dismiss install suggestion"><X size={18} /></button></aside>;
