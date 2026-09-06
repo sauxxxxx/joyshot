@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "JoyShot — Make a little moment last",
     description: "A private online photo booth for solo, together, and event moments.",
-    images: ["/images/joyshot-booth-hero.webp"],
+    images: ["/images/joyshot-booth-machine-v2.webp"],
   },
 };
 

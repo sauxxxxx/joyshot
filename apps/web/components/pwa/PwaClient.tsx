@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import styles from "./PwaClient.module.css";
 
@@ -10,6 +11,7 @@ interface InstallPromptEvent extends Event {
 }
 
 export function PwaClient() {
+  const pathname = usePathname();
   const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
   const [dismissed, setDismissed] = useState(true);
   useEffect(() => {
@@ -21,7 +23,8 @@ export function PwaClient() {
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
-  if (!prompt || dismissed) return null;
+  const isBoothRoute = pathname === "/solo" || pathname === "/together";
+  if (!prompt || dismissed || !isBoothRoute) return null;
   const dismiss = () => { sessionStorage.setItem("joyshot-install-dismissed", "true"); setDismissed(true); };
   return <aside className={styles.prompt} aria-label="Install JoyShot"><Download size={20} /><div><strong>Install JoyShot</strong><span>Open the booth full-screen from your home screen.</span></div><button type="button" onClick={() => void prompt.prompt().then(() => setDismissed(true))}>Install</button><button className={styles.close} type="button" onClick={dismiss} aria-label="Dismiss install suggestion"><X size={18} /></button></aside>;
 }

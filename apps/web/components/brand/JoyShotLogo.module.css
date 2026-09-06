@@ -1,7 +1,8 @@
-.logo { display: inline-flex; min-height: 48px; align-items: center; gap: 10px; color: var(--color-foreground); font-family: var(--font-heading), sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -.045em; }
-.logo svg { width: 34px; height: 34px; overflow: visible; }
-.logo svg rect { fill: var(--color-primary); stroke: var(--color-foreground); stroke-width: 1.7; }
-.logo svg circle { fill: none; stroke: #fffaf2; stroke-width: 2.2; }
-.logo svg path { fill: none; stroke: #fffaf2; stroke-linecap: round; stroke-width: 1.7; }
-.inverted { color: #fffaf2; }
-.inverted svg rect { stroke: #fffaf2; }
+.logo { position: relative; display: inline-grid; min-height: 48px; grid-template-columns: 18px auto; align-items: center; column-gap: 7px; color: #311b19; }
+.word { font-family: Georgia, "Times New Roman", serif; font-size: 1.75rem; font-weight: 700; letter-spacing: -.085em; line-height: 1; }
+.roll { position: relative; display: grid; width: 16px; height: 37px; grid-template-rows: repeat(4, 1fr); gap: 2px; padding: 2px; border: 1.5px solid currentColor; background: #f8f0e3; transform: rotate(-4deg); }
+.roll::after { position: absolute; right: -5px; bottom: -5px; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; border-radius: 0 0 7px; content: ""; }
+.roll i { display: block; background: #971f32; }
+.logo small { grid-column: 2; margin-top: -7px; font-family: var(--font-body); font-size: .47rem; font-weight: 900; letter-spacing: .17em; text-transform: uppercase; }
+.inverted { color: #f8f0e3; }
+.inverted .roll { background: #281a17; }

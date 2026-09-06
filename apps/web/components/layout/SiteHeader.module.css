@@ -1,54 +1,11 @@
-.header {
-  position: relative;
-  z-index: 20;
-  padding-top: max(14px, env(safe-area-inset-top));
-}
-
-.inner {
-  display: flex;
-  min-height: 66px;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.inner nav {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.boothLink { display: inline-flex; min-height: 42px; align-items: center; border-radius: 999px; padding: 8px 16px; background: var(--color-foreground); color: #fffaf2; font-size: .83rem; font-weight: 900; }
-
-.navLink {
-  display: none;
-  min-height: 44px;
-  align-items: center;
-  color: var(--color-muted);
-  font-weight: 700;
-}
-
-.navLink:hover {
-  color: var(--color-foreground);
-}
-
-.buildBadge {
-  display: inline-flex;
-  min-height: 36px;
-  align-items: center;
-  gap: 7px;
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  padding: 6px 11px;
-  background: rgb(255 255 255 / 72%);
-  color: var(--color-muted);
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-@media (min-width: 640px) {
-  .navLink {
-    display: inline-flex;
-  }
-}
-
-@media (max-width: 420px) { .inner nav { gap: 8px; } .boothLink { padding-inline: 13px; } }
+.header { position: relative; z-index: 20; border-bottom: 1px solid #b9ab9c; background: #f4efe6; }
+.inner { display: flex; min-height: 76px; align-items: center; justify-content: space-between; }
+.inner nav { display: flex; align-items: center; gap: clamp(12px, 2vw, 28px); }
+.navLink { display: none; min-height: 44px; align-items: center; font-size: .78rem; font-weight: 900; letter-spacing: .04em; }
+.navLink:hover { color: var(--color-primary); }
+.boothLink { position: relative; display: inline-flex; min-height: 46px; align-items: center; gap: 12px; border: 1px solid #4c3731; padding: 8px 16px 8px 9px; background: #f8f0e3; font-size: .75rem; font-weight: 900; text-transform: uppercase; }
+.boothLink::before, .boothLink::after { position: absolute; left: -1px; width: 100%; border-top: 1px dashed #9c8c7d; content: ""; }
+.boothLink::before { top: 3px; }.boothLink::after { bottom: 3px; }
+.boothLink span { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #971f32; color: white; font-family: Georgia, serif; }
+@media (min-width: 700px) { .navLink { display: inline-flex; } }
+@media (max-width: 390px) { .inner { min-height: 68px; } .boothLink { padding-right: 10px; } }

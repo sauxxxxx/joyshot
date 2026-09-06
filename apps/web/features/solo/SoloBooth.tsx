@@ -7,6 +7,8 @@ import { CameraPreview } from "@/components/camera/CameraPreview";
 import { captureFrame } from "@/features/camera/captureFrame";
 import { CameraControls } from "@/features/camera/CameraControls";
 import { useCamera } from "@/features/camera/useCamera";
+import { ResultStudio } from "@/features/editor/ResultStudio";
+import { createPhotoEdit, type PhotoEdit } from "@/features/editor/photoEdits";
 import { readEventProfile, type EventProfile } from "@/features/event/eventProfile";
 import { saveGalleryItem } from "@/features/gallery/galleryStore";
 import { shareImage } from "@/features/sharing/shareMedia";
@@ -36,6 +38,7 @@ export function SoloBooth() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [edits, setEdits] = useState<PhotoEdit[]>([]);
   const [strip, setStrip] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -55,12 +58,12 @@ export function SoloBooth() {
     if (photos.length !== 4 || (step !== "customize" && step !== "result")) return;
     let active = true;
     setStrip(null);
-    void drawSoloStrip(photos, theme, settings.layout, {
+    void drawSoloStrip(edits.length === 4 ? edits : photos, theme, settings.layout, {
       title, caption, logoSource: eventProfile?.logoSource, brandColor: eventProfile?.brandColor,
     }).then((image) => active && setStrip(image))
       .catch(() => active && setError("We could not render that design. Try another style."));
     return () => { active = false; };
-  }, [caption, eventProfile, photos, settings.layout, step, theme, title]);
+  }, [caption, edits, eventProfile, photos, settings.layout, step, theme, title]);
   useEffect(() => {
     if (step !== "capture" || !("wakeLock" in navigator)) return;
     let lock: WakeLockSentinel | undefined;
@@ -98,7 +101,7 @@ export function SoloBooth() {
 
   const startSession = useCallback(async () => {
     if (camera.status !== "ready") return;
-    cancelledRef.current = false; setError(null); setPhotos([]); setStrip(null); setStep("capture");
+    cancelledRef.current = false; setError(null); setPhotos([]); setEdits([]); setStrip(null); setStep("capture");
     try {
       const captures: string[] = [];
       for (let index = 0; index < 4; index += 1) {
@@ -106,7 +109,7 @@ export function SoloBooth() {
         captures.push(photo); setPhotos([...captures]);
         if (index < 3) await wait(700);
       }
-      setPhotos(captures); setStep("review");
+      setPhotos(captures); setEdits(captures.map(createPhotoEdit)); setStep("review");
     } catch (captureError) {
       if (!cancelledRef.current) setError(captureError instanceof Error ? captureError.message : "Capture failed.");
       setStep("settings");
@@ -117,6 +120,7 @@ export function SoloBooth() {
     try {
       const photo = await takeFrame(index);
       setPhotos((current) => current.map((item, itemIndex) => itemIndex === index ? photo : item));
+      setEdits((current) => current.map((item, itemIndex) => itemIndex === index ? createPhotoEdit(photo) : item));
       setStep("review");
     } catch (captureError) {
       if (!cancelledRef.current) setError(captureError instanceof Error ? captureError.message : "Retake failed.");
@@ -124,7 +128,7 @@ export function SoloBooth() {
     }
   }, [takeFrame]);
   const reset = () => {
-    cancelledRef.current = true; setPhotos([]); setStrip(null); setCountdown(null);
+    cancelledRef.current = true; setPhotos([]); setEdits([]); setStrip(null); setCountdown(null);
     setError(null); setMessage(null); setStep("camera");
   };
   const download = () => {
@@ -183,6 +187,8 @@ export function SoloBooth() {
         <div className={styles.textOptions}><label>Title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
         <label>Caption<input maxLength={64} value={caption} placeholder="Our Sunday 🤍" onChange={(event) => setCaption(event.target.value)} /></label></div>
       </div><StripPreview strip={strip} theme={theme} /></div>
+      <ResultStudio photos={photos} initialEdits={edits} strip={strip} title={title} mode={eventProfile ? "event" : "solo"}
+        retentionHours={eventProfile?.retentionHours} onEditsChange={setEdits} onRetake={(index) => void retake(index)} />
       <FlowActions back={() => setStep("review")} next={() => setStep("result")} nextLabel="Finish my JoyShot" disabled={!strip} />
     </div>}
     {step === "result" && <div className={styles.result}>
