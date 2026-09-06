@@ -1,4 +1,4 @@
-import { ArrowRight, Camera, Heart, LockKeyhole, Sparkles, UsersRound } from "lucide-react";
+import { ArrowRight, Camera, Heart, LockKeyhole, PartyPopper, Sparkles, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { PhotoStripArt } from "@/components/landing/PhotoStripArt";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -19,19 +19,19 @@ export default function HomePage() {
         <section className={`container ${styles.hero}`}>
           <div className={styles.heroCopy}>
             <span className="eyebrow"><Sparkles size={17} /> Your moment, your booth</span>
-            <h1>Photo booth magic, wherever you are.</h1>
+            <h1>Make a little moment last.</h1>
             <p className={styles.lede}>
-              Capture a classic strip on your own, or open a private room and share the same
-              countdown with someone miles away.
+              Create photo strips with yourself or someone you love—right from your browser.
             </p>
             <div className={styles.heroActions}>
               <Link className="button buttonPrimary" href="/solo">
-                <Camera size={20} aria-hidden="true" /> Start solo booth
+                <Camera size={20} aria-hidden="true" /> Start taking photos
               </Link>
-              <a className="button buttonSecondary" href="#booth-modes">
-                Explore modes <ArrowRight size={19} aria-hidden="true" />
-              </a>
+              <Link className="button buttonSecondary" href="/room">
+                <UsersRound size={19} aria-hidden="true" /> Create a booth together
+              </Link>
             </div>
+            <Link className={styles.eventLink} href="/event"><PartyPopper size={17} /> Hosting an event? <ArrowRight size={16} /></Link>
             <div className={styles.privacyNote}>
               <LockKeyhole size={17} aria-hidden="true" />
               Camera access starts only when you allow it. Photos stay on this device in solo mode.
@@ -42,15 +42,15 @@ export default function HomePage() {
 
         <section className={`container ${styles.modes}`} id="booth-modes" aria-labelledby="modes-title">
           <div className={styles.sectionHeading}>
-            <span className="eyebrow">Choose your moment</span>
-            <h2 id="modes-title">One booth, two ways to smile.</h2>
+            <span className="eyebrow">Choose your booth</span>
+            <h2 id="modes-title">How are we taking photos today?</h2>
           </div>
           <div className={styles.modeGrid}>
             <article className={`${styles.modeCard} ${styles.soloCard}`}>
               <div className={styles.modeIcon}><Camera size={28} aria-hidden="true" /></div>
               <span className={styles.available}>Available now</span>
-              <h3>Solo booth</h3>
-              <p>Use your camera, follow four countdowns, pick a frame, and download your strip.</p>
+              <h3>Just me</h3>
+              <p>Take a four-photo strip on this device. No account and no uploads.</p>
               <Link className={styles.cardLink} href="/solo">
                 Open solo booth <ArrowRight size={18} aria-hidden="true" />
               </Link>
@@ -58,8 +58,8 @@ export default function HomePage() {
             <article className={`${styles.modeCard} ${styles.togetherCard}`}>
               <div className={styles.modeIcon}><UsersRound size={28} aria-hidden="true" /></div>
               <span className={styles.nextBadge}>Live rooms</span>
-              <h3>Two-person booth</h3>
-              <p>Share a private room, see both live cameras, and capture the same countdown together.</p>
+              <h3>With someone</h3>
+              <p>Take photos together from two devices in one private, synchronized room.</p>
               <Link className={styles.cardLink} href="/room">
                 Create or join a room <ArrowRight size={18} aria-hidden="true" />
               </Link>

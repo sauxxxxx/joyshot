@@ -9,6 +9,8 @@ interface StripThemePickerProps {
   value: StripThemeId;
 }
 
+const featuredThemes: StripThemeId[] = ["classic", "pink", "film", "midnight", "mono"];
+
 export function StripThemePicker({ label = "Choose your strip style", onChange, value }: StripThemePickerProps) {
   return (
     <section className={styles.picker} aria-labelledby="strip-style-heading">
@@ -17,16 +19,16 @@ export function StripThemePicker({ label = "Choose your strip style", onChange, 
           <h2 id="strip-style-heading">{label}</h2>
           <p>Tap a preview to restyle your finished strip.</p>
         </div>
-        <span>{Object.keys(stripThemes).length} designs</span>
+        <span>{featuredThemes.length} curated designs</span>
       </div>
       <div className={styles.grid} role="radiogroup" aria-label="Photo strip style">
-        {Object.entries(stripThemes).map(([id, theme]) => {
-          const themeId = id as StripThemeId;
+        {featuredThemes.map((themeId) => {
+          const theme = stripThemes[themeId];
           const selected = value === themeId;
           return (
             <label
               className={`${styles.card} ${selected ? styles.selected : ""}`}
-              key={id}
+              key={themeId}
             >
               <input
                 checked={selected}
@@ -34,7 +36,7 @@ export function StripThemePicker({ label = "Choose your strip style", onChange, 
                 name="strip-theme"
                 onChange={() => onChange(themeId)}
                 type="radio"
-                value={id}
+                value={themeId}
               />
               <span
                 className={styles.preview}

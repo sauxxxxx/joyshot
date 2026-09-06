@@ -1,4 +1,4 @@
-import { CalendarHeart, Camera, Images } from "lucide-react";
+import { CalendarHeart, Camera } from "lucide-react";
 import Link from "next/link";
 import styles from "./SiteHeader.module.css";
 
@@ -13,8 +13,7 @@ export function SiteHeader() {
           <span>JoyShot</span>
         </Link>
         <nav aria-label="Primary navigation">
-          <Link className={styles.navLink} href="/event"><CalendarHeart size={16} /> Events</Link>
-          <Link className={styles.navLink} href="/gallery"><Images size={16} /> Gallery</Link>
+          <Link className={styles.navLink} href="/event"><CalendarHeart size={16} /> Host an event</Link>
         </nav>
       </div>
     </header>

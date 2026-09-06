@@ -20,8 +20,10 @@ export function EventSetup() {
   const fullscreen = () => void document.documentElement.requestFullscreen?.();
   return <section className={styles.setup} aria-labelledby="event-title">
     <div className={styles.intro}><span className="eyebrow"><PartyPopper size={17} /> Event mode</span><h1 id="event-title">Make JoyShot your guest booth.</h1><p>Brand the strip, run a full-screen kiosk, and keep an optional private gallery on this device.</p></div>
+    <ol className={styles.flow} aria-label="Event booth workflow"><li><span>1</span>Event details</li><li><span>2</span>Brand the booth</li><li><span>3</span>Preview</li><li><span>4</span>Launch kiosk</li><li><span>5</span>Guest gallery</li></ol>
     <div className={styles.workspace}>
       <form onSubmit={(event) => { event.preventDefault(); save(); }}>
+        <div className={styles.formHeading}><span>Admin setup</span><h2>Customize your event</h2><p>Guests will never see these controls.</p></div>
         <label>Event name<input maxLength={34} value={profile.name} onChange={(event) => update("name", event.target.value)} /></label>
         <label>Strip caption<input maxLength={64} value={profile.caption} onChange={(event) => update("caption", event.target.value)} /></label>
         <label>Brand color<input className={styles.color} type="color" value={profile.brandColor} onChange={(event) => update("brandColor", event.target.value)} /></label>
@@ -33,7 +35,7 @@ export function EventSetup() {
       <aside className={styles.preview} style={{ "--event-color": profile.brandColor } as React.CSSProperties}>
         {profile.logoSource ? <img src={profile.logoSource} alt="Uploaded event logo preview" /> : <PartyPopper size={42} />}
         <span>JoyShot event</span><h2>{profile.name || "Your event"}</h2><p>{profile.caption}</p>
-        <div className={styles.actions}><Link className="button buttonPrimary" href="/solo?event=1" onClick={save}><Play size={18} /> Start event booth</Link><button className="button buttonSecondary" type="button" onClick={fullscreen}><Expand size={18} /> Full screen</button><Link className="button buttonSecondary" href="/gallery"><QrCode size={18} /> Event gallery</Link></div>
+        <div className={styles.actions}><Link className="button buttonPrimary" href="/solo?event=1" onClick={save}><Play size={18} /> Launch guest kiosk</Link><button className="button buttonSecondary" type="button" onClick={fullscreen}><Expand size={18} /> Preview full screen</button><Link className="button buttonSecondary" href="/gallery"><QrCode size={18} /> Open gallery</Link></div>
       </aside>
     </div>
   </section>;

@@ -1,41 +1,46 @@
 "use client";
 
 import type { BoothSettings } from "@photobooth/shared";
-import { Camera, Check, Download, LoaderCircle, RefreshCcw, ShieldCheck, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, Check, Download, Images, LoaderCircle, RefreshCcw, Share2, ShieldCheck, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CameraPreview } from "@/components/camera/CameraPreview";
 import { captureFrame } from "@/features/camera/captureFrame";
 import { CameraControls } from "@/features/camera/CameraControls";
 import { useCamera } from "@/features/camera/useCamera";
-import { ResultStudio } from "@/features/editor/ResultStudio";
-import { createPhotoEdit, type PhotoEdit } from "@/features/editor/photoEdits";
 import { readEventProfile, type EventProfile } from "@/features/event/eventProfile";
-import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
+import { saveGalleryItem } from "@/features/gallery/galleryStore";
+import { shareImage } from "@/features/sharing/shareMedia";
 import { BoothSettingsPicker } from "@/features/strip/BoothSettingsPicker";
+import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
 import { StripThemePicker } from "@/features/strip/StripThemePicker";
 import { stripThemes, type StripThemeId } from "@/features/strip/stripThemes";
 import { promptForShot } from "@/features/session/posePrompts";
 import styles from "./SoloBooth.module.css";
 
-type BoothPhase = "setup" | "countdown" | "processing" | "complete";
+type BoothStep = "camera" | "style" | "settings" | "capture" | "review" | "customize" | "result";
+const steps: Array<{ id: BoothStep; label: string }> = [
+  { id: "camera", label: "Camera" }, { id: "style", label: "Style" },
+  { id: "settings", label: "Setup" }, { id: "capture", label: "Capture" },
+  { id: "review", label: "Review" }, { id: "customize", label: "Customize" },
+  { id: "result", label: "Finish" },
+];
 const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
 
 export function SoloBooth() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cancelledRef = useRef(false);
   const camera = useCamera();
-  const { error: cameraError, start: startCamera, status: cameraStatus, stream } = camera;
-  const [phase, setPhase] = useState<BoothPhase>("setup");
+  const [step, setStep] = useState<BoothStep>("camera");
   const [theme, setTheme] = useState<StripThemeId>("classic");
   const [settings, setSettings] = useState<BoothSettings>({ countdownSeconds: 5, layout: "strip" });
   const [countdown, setCountdown] = useState<number | null>(null);
   const [shotIndex, setShotIndex] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
-  const [edits, setEdits] = useState<PhotoEdit[]>([]);
   const [strip, setStrip] = useState<string | null>(null);
   const [flash, setFlash] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [sessionError, setSessionError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
   const [title, setTitle] = useState("JoyShot");
   const [caption, setCaption] = useState("");
   const [eventProfile, setEventProfile] = useState<EventProfile | null>(null);
@@ -45,220 +50,191 @@ export function SoloBooth() {
     const profile = readEventProfile();
     if (profile) { setEventProfile(profile); setTitle(profile.name); setCaption(profile.caption); }
   }, []);
-
-  useEffect(() => () => {
-    cancelledRef.current = true;
-  }, []);
-
+  useEffect(() => () => { cancelledRef.current = true; }, []);
   useEffect(() => {
-    if (photos.length !== 4 || phase !== "complete") return;
+    if (photos.length !== 4 || (step !== "customize" && step !== "result")) return;
     let active = true;
     setStrip(null);
-    void drawSoloStrip(edits.length === 4 ? edits : photos, theme, settings.layout, {
+    void drawSoloStrip(photos, theme, settings.layout, {
       title, caption, logoSource: eventProfile?.logoSource, brandColor: eventProfile?.brandColor,
-    })
-      .then((nextStrip) => active && setStrip(nextStrip))
-      .catch(() => active && setSessionError("We could not redraw that theme. Try another one."));
-    return () => {
-      active = false;
-    };
-  }, [caption, edits, eventProfile, photos, theme, settings.layout, phase, title]);
-
+    }).then((image) => active && setStrip(image))
+      .catch(() => active && setError("We could not render that design. Try another style."));
+    return () => { active = false; };
+  }, [caption, eventProfile, photos, settings.layout, step, theme, title]);
   useEffect(() => {
-    if (phase !== "countdown" || !("wakeLock" in navigator)) return;
+    if (step !== "capture" || !("wakeLock" in navigator)) return;
     let lock: WakeLockSentinel | undefined;
-    void navigator.wakeLock.request("screen").then((nextLock) => { lock = nextLock; }).catch(() => undefined);
+    void navigator.wakeLock.request("screen").then((next) => { lock = next; }).catch(() => undefined);
     return () => { void lock?.release(); };
-  }, [phase]);
+  }, [step]);
 
   const playTone = useCallback((frequency: number, duration: number) => {
-    if (muted) return;
-    const AudioContextClass = window.AudioContext;
-    if (!AudioContextClass) return;
-    const audio = new AudioContextClass();
+    if (muted || !window.AudioContext) return;
+    const audio = new AudioContext();
     const oscillator = audio.createOscillator();
     const gain = audio.createGain();
     oscillator.frequency.value = frequency;
-    gain.gain.setValueAtTime(0.06, audio.currentTime);
+    gain.gain.setValueAtTime(0.055, audio.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + duration / 1000);
     oscillator.connect(gain).connect(audio.destination);
-    oscillator.start();
-    oscillator.stop(audio.currentTime + duration / 1000);
+    oscillator.start(); oscillator.stop(audio.currentTime + duration / 1000);
     oscillator.addEventListener("ended", () => void audio.close());
   }, [muted]);
 
-  const startSession = useCallback(async () => {
-    if (!videoRef.current || cameraStatus !== "ready") return;
-    cancelledRef.current = false;
-    setSessionError(null);
-    setPhotos([]);
-    setEdits([]);
-    setStrip(null);
-    setPhase("countdown");
+  const takeFrame = useCallback(async (index: number) => {
+    setShotIndex(index);
+    for (let count = settings.countdownSeconds; count >= 1; count -= 1) {
+      setCountdown(count);
+      if (count <= 3) playTone(520 + (3 - count) * 90, 120);
+      await wait(1000);
+      if (cancelledRef.current) throw new Error("Capture cancelled");
+    }
+    setCountdown(null); setFlash(true); playTone(880, 180);
+    if (!videoRef.current) throw new Error("The camera preview is not ready.");
+    const photo = captureFrame(videoRef.current, { mirror: camera.mirrored });
+    await wait(320); setFlash(false);
+    return photo;
+  }, [camera.mirrored, playTone, settings.countdownSeconds]);
 
+  const startSession = useCallback(async () => {
+    if (camera.status !== "ready") return;
+    cancelledRef.current = false; setError(null); setPhotos([]); setStrip(null); setStep("capture");
     try {
       const captures: string[] = [];
-      for (let shot = 0; shot < 4; shot += 1) {
-        if (cancelledRef.current) return;
-        setShotIndex(shot);
-        for (let count = settings.countdownSeconds; count >= 1; count -= 1) {
-          setCountdown(count);
-          if (count <= 3) playTone(520 + (3 - count) * 90, 120);
-          await wait(1000);
-          if (cancelledRef.current) return;
-        }
-        setCountdown(null);
-        setFlash(true);
-        playTone(880, 180);
-        captures.push(captureFrame(videoRef.current, { mirror: camera.mirrored }));
-        setPhotos([...captures]);
-        await wait(380);
-        setFlash(false);
-        if (shot < 3) await wait(850);
+      for (let index = 0; index < 4; index += 1) {
+        const photo = await takeFrame(index);
+        captures.push(photo); setPhotos([...captures]);
+        if (index < 3) await wait(700);
       }
-
-      setPhase("processing");
-      setEdits(captures.map(createPhotoEdit));
-      const result = await drawSoloStrip(captures, theme, settings.layout, { title, caption, logoSource: eventProfile?.logoSource, brandColor: eventProfile?.brandColor });
-      if (cancelledRef.current) return;
-      setStrip(result);
-      setPhase("complete");
+      setPhotos(captures); setStep("review");
     } catch (captureError) {
-      setSessionError(captureError instanceof Error ? captureError.message : "The session could not be completed.");
-      setPhase("setup");
+      if (!cancelledRef.current) setError(captureError instanceof Error ? captureError.message : "Capture failed.");
+      setStep("settings");
     }
-  }, [camera.mirrored, cameraStatus, caption, eventProfile, playTone, settings, theme, title]);
-
-  const retakePhoto = useCallback(async (index: number) => {
-    if (!videoRef.current || cameraStatus !== "ready") return;
-    cancelledRef.current = false; setShotIndex(index); setPhase("countdown"); setSessionError(null);
+  }, [camera.status, takeFrame]);
+  const retake = useCallback(async (index: number) => {
+    cancelledRef.current = false; setError(null); setStep("capture");
     try {
-      for (let count = settings.countdownSeconds; count >= 1; count -= 1) { setCountdown(count); playTone(620, 100); await wait(1000); }
-      setCountdown(null); setFlash(true); playTone(880, 180);
-      const source = captureFrame(videoRef.current, { mirror: camera.mirrored });
-      const nextPhotos = photos.map((photo, photoIndex) => photoIndex === index ? source : photo);
-      const nextEdits = edits.map((edit, editIndex) => editIndex === index ? createPhotoEdit(source) : edit);
-      setPhotos(nextPhotos); setEdits(nextEdits); await wait(380); setFlash(false); setPhase("complete");
-    } catch (error) { setSessionError(error instanceof Error ? error.message : "That photo could not be retaken."); setPhase("complete"); }
-  }, [camera.mirrored, cameraStatus, edits, photos, playTone, settings.countdownSeconds]);
-
-  const reset = useCallback(() => {
-    cancelledRef.current = true;
-    setPhase("setup");
-    setPhotos([]);
-    setEdits([]);
-    setStrip(null);
-    setCountdown(null);
-    setSessionError(null);
-  }, []);
-
-  const download = useCallback(() => {
+      const photo = await takeFrame(index);
+      setPhotos((current) => current.map((item, itemIndex) => itemIndex === index ? photo : item));
+      setStep("review");
+    } catch (captureError) {
+      if (!cancelledRef.current) setError(captureError instanceof Error ? captureError.message : "Retake failed.");
+      setStep("review");
+    }
+  }, [takeFrame]);
+  const reset = () => {
+    cancelledRef.current = true; setPhotos([]); setStrip(null); setCountdown(null);
+    setError(null); setMessage(null); setStep("camera");
+  };
+  const download = () => {
     if (!strip) return;
-    const anchor = document.createElement("a");
-    anchor.href = strip;
-    anchor.download = `joyshot-photo-strip-${Date.now()}.png`;
-    anchor.click();
-  }, [strip]);
+    const anchor = document.createElement("a"); anchor.href = strip;
+    anchor.download = `joyshot-${Date.now()}.png`; anchor.click();
+  };
+  const share = async () => {
+    if (!strip) return;
+    const shared = await shareImage(strip, "joyshot.png", title);
+    if (!shared) { download(); setMessage("Sharing is unavailable here, so we downloaded your JoyShot instead."); }
+  };
+  const save = async () => {
+    if (!strip) return;
+    await saveGalleryItem(strip, title, eventProfile ? "event" : "solo", eventProfile?.retentionHours);
+    setMessage("Saved privately to your gallery on this device.");
+  };
 
-  if (phase === "complete") {
-    return (
-      <section className={styles.result} aria-labelledby="result-title">
-        <div className={styles.resultCopy}>
-          <span className="eyebrow"><Check size={17} /> Four poses captured</span>
-          <h1 id="result-title">Your strip is ready.</h1>
-          <p>Pick the frame that feels right, then save the full-resolution PNG to your device.</p>
-          <div className={styles.textOptions}><label>Strip title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Caption<input maxLength={64} value={caption} placeholder="Optional message" onChange={(event) => setCaption(event.target.value)} /></label></div>
-          <StripThemePicker onChange={setTheme} value={theme} />
-          <BoothSettingsPicker settings={settings} onChange={setSettings} showTimer={false} />
-          <div className={styles.resultActions}>
-            <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}>
-              {strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}
-              {strip ? "Download PNG" : "Rendering theme..."}
-            </button>
-            <button className="button buttonSecondary" type="button" onClick={reset}>
-              <RefreshCcw size={19} /> Take another
-            </button>
-          </div>
-          {sessionError && <p className={styles.error} role="alert">{sessionError}</p>}
-        </div>
-        <div className={styles.stripPreview} aria-live="polite">
-          {strip ? <img src={strip} alt={`Completed four-photo strip in the ${stripThemes[theme].label} theme`} /> : <LoaderCircle className={styles.largeSpinner} aria-label="Rendering photo strip" />}
-        </div>
-        <ResultStudio photos={photos} initialEdits={edits} strip={strip} title={title} mode={eventProfile ? "event" : "solo"} retentionHours={eventProfile?.retentionHours} onEditsChange={setEdits} onRetake={(index) => void retakePhoto(index)} />
-      </section>
-    );
-  }
-
-  return (
-    <section className={styles.booth} aria-labelledby="booth-title">
-      <div className={styles.copy}>
-        <span className="eyebrow"><Camera size={17} /> Solo booth</span>
-        <h1 id="booth-title">Four poses. One classic strip.</h1>
-        <p>Set your camera at eye level, choose your timer and layout, then get ready for four photos.</p>
-      </div>
-
-      <div className={styles.workspace}>
-        <div className={styles.cameraColumn}>
-          <CameraPreview flash={flash} mirrored={camera.mirrored} status={cameraStatus} stream={stream} videoRef={videoRef} />
-          {phase === "countdown" && (
-            <div className={styles.countdownOverlay} aria-live="assertive" aria-atomic="true">
-              <span className={styles.progress}>Photo {shotIndex + 1} of 4</span>
-              <strong key={`${shotIndex}-${countdown}`}>{countdown ?? "Smile!"}</strong>
-              <span>{promptForShot(shotIndex)}</span>
-            </div>
-          )}
-          <div className={styles.thumbnails} aria-label={`${photos.length} of 4 photos captured`}>
-            {[0, 1, 2, 3].map((index) => (
-              <div key={index} className={photos[index] ? styles.thumbnailComplete : ""}>
-                {photos[index] ? <img src={photos[index]} alt={`Captured pose ${index + 1}`} /> : <span>{index + 1}</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <aside className={styles.controls} aria-label="Booth controls">
-          <div className={styles.controlHeading}>
-            <div><span>Session setup</span><strong>{cameraStatus === "ready" ? "Ready to shoot" : "Camera needed"}</strong></div>
-            <button className={styles.soundButton} type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Turn countdown sound on" : "Mute countdown sound"}>
-              {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-            </button>
-          </div>
-          <div className={styles.checklist}>
-            <div className={cameraStatus === "ready" ? styles.checked : ""}><span><Camera size={18} /> Camera access</span>{cameraStatus === "ready" && <Check size={18} />}</div>
-          </div>
-          <BoothSettingsPicker settings={settings} onChange={setSettings} showLayout={false} />
-          {cameraStatus === "ready" && <CameraControls devices={camera.devices} mirrored={camera.mirrored} selectedDeviceId={camera.selectedDeviceId}
-            disabled={phase !== "setup"} onFlip={() => void camera.flipCamera()} onMirrorChange={camera.setMirrored} onSelect={(deviceId) => void camera.selectDevice(deviceId)} />}
-          {cameraStatus !== "ready" ? (
-            <button className="button buttonPrimary" type="button" onClick={() => void startCamera()} disabled={cameraStatus === "requesting"}>
-              {cameraStatus === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}
-              {cameraStatus === "requesting" ? "Starting camera..." : cameraStatus === "error" ? "Try camera again" : "Allow camera"}
-            </button>
-          ) : (
-            <button className="button buttonPrimary" type="button" onClick={() => void startSession()} disabled={phase !== "setup"}>
-              <Camera size={20} /> Start four photos
-            </button>
-          )}
-          {(cameraError || sessionError) && <p className={styles.error} role="alert">{cameraError ?? sessionError}</p>}
-          <p className={styles.privacy}><ShieldCheck size={17} /> Your solo photos stay in this browser and disappear when you close or refresh the page.</p>
-        </aside>
-      </div>
-
-      <section className={styles.customization} aria-labelledby="customization-title">
-        <div className={styles.customizationHeading}>
-          <div>
-            <span>Make it yours</span>
-            <h2 id="customization-title">Choose the finished look.</h2>
-          </div>
-          <p>Your choices stay editable until you start the countdown.</p>
-        </div>
-        <StripThemePicker label="Photo strip design" onChange={setTheme} value={theme} />
+  const currentStep = steps.findIndex(({ id }) => id === step);
+  return <section className={`${styles.booth} ${step === "capture" ? styles.immersive : ""}`} aria-labelledby="booth-title">
+    {step !== "capture" && <nav className={styles.progressNav} aria-label="Booth progress">
+      {steps.filter(({ id }) => id !== "capture").map((item) => {
+        const index = steps.findIndex(({ id }) => id === item.id);
+        return <span key={item.id} className={index === currentStep ? styles.activeStep : index < currentStep ? styles.doneStep : ""}>
+          <i>{index < currentStep ? <Check size={13} /> : index + 1}</i>{item.label}
+        </span>;
+      })}
+    </nav>}
+    {step === "camera" && <SetupScreen title={eventProfile?.name} camera={camera} videoRef={videoRef} flash={flash} onContinue={() => setStep("style")} />}
+    {step === "style" && <div className={styles.flowScreen}>
+      <FlowHeading eyebrow="Step 2" title="Choose your vibe." text="Pick a starting point. You can change it again after your photos are taken." />
+      <StripThemePicker onChange={setTheme} value={theme} />
+      <FlowActions back={() => setStep("camera")} next={() => setStep("settings")} nextLabel="Continue to setup" />
+    </div>}
+    {step === "settings" && <div className={styles.flowScreen}>
+      <FlowHeading eyebrow="Step 3" title="A couple of small choices." text="Choose your pace and final format, then the booth takes over." />
+      <div className={styles.settingsCard}><BoothSettingsPicker settings={settings} onChange={setSettings} /></div>
+      <FlowActions back={() => setStep("style")} next={() => void startSession()} nextLabel="Start booth" camera />
+      {error && <p className={styles.error} role="alert">{error}</p>}
+    </div>}
+    {step === "capture" && <CaptureScreen camera={camera} videoRef={videoRef} flash={flash} countdown={countdown} shotIndex={shotIndex} photos={photos} muted={muted} onMute={() => setMuted((value) => !value)} />}
+    {step === "review" && <div className={styles.flowScreen}>
+      <FlowHeading eyebrow="Four poses captured" title="Keep the ones you love." text="Retake just one photo—there is no need to start the whole booth again." />
+      <div className={styles.reviewGrid}>{photos.map((photo, index) => <article key={`${photo.slice(-18)}-${index}`}>
+        <img src={photo} alt={`Pose ${index + 1}`} /><div><strong>Pose {index + 1}</strong>
+        <button type="button" onClick={() => void retake(index)}><RefreshCcw size={16} /> Retake</button></div>
+      </article>)}</div>
+      <FlowActions back={() => { setPhotos([]); setStep("settings"); }} next={() => setStep("customize")} nextLabel="Looks good" />
+      {error && <p className={styles.error} role="alert">{error}</p>}
+    </div>}
+    {step === "customize" && <div className={styles.flowScreen}>
+      <FlowHeading eyebrow="Make it yours" title="Now for the finishing touch." text="Style your real photos and watch the keepsake update." />
+      <div className={styles.customizeGrid}><div className={styles.customizeControls}>
+        <StripThemePicker label="Frame style" onChange={setTheme} value={theme} />
         <BoothSettingsPicker settings={settings} onChange={setSettings} showTimer={false} />
-      </section>
+        <div className={styles.textOptions}><label>Title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label>
+        <label>Caption<input maxLength={64} value={caption} placeholder="Our Sunday 🤍" onChange={(event) => setCaption(event.target.value)} /></label></div>
+      </div><StripPreview strip={strip} theme={theme} /></div>
+      <FlowActions back={() => setStep("review")} next={() => setStep("result")} nextLabel="Finish my JoyShot" disabled={!strip} />
+    </div>}
+    {step === "result" && <div className={styles.result}>
+      <div className={styles.celebration}><span><Sparkles size={18} /> Ready to keep</span><h1 id="booth-title">Your JoyShot is ready.</h1>
+        <p>Made in your browser, ready for wherever the moment goes next.</p></div>
+      <StripPreview strip={strip} theme={theme} />
+      <div className={styles.resultActions}>
+        <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}><Download size={19} /> Download photo</button>
+        <button className="button buttonSecondary" type="button" onClick={() => void share()} disabled={!strip}><Share2 size={19} /> Share</button>
+        <button className="button buttonSecondary" type="button" onClick={() => void save()} disabled={!strip}><Images size={19} /> Save to gallery</button>
+        <button className="button buttonGhost" type="button" onClick={() => setStep("customize")}><ArrowLeft size={18} /> Edit design</button>
+        <button className="button buttonGhost" type="button" onClick={reset}><RefreshCcw size={18} /> Take another strip</button>
+      </div>{message && <p className={styles.message} role="status">{message}</p>}
+    </div>}
+  </section>;
+}
 
-      {phase === "processing" && (
-        <div className={styles.processing} role="status"><LoaderCircle className={styles.spinner} size={24} /> Making your photo strip...</div>
-      )}
-    </section>
-  );
+function FlowHeading({ eyebrow, title, text }: { eyebrow: string; title: string; text: string }) {
+  return <header className={styles.flowHeading}><span>{eyebrow}</span><h1 id="booth-title">{title}</h1><p>{text}</p></header>;
+}
+function FlowActions({ back, next, nextLabel, camera, disabled }: { back: () => void; next: () => void; nextLabel: string; camera?: boolean; disabled?: boolean }) {
+  return <div className={styles.flowActions}><button className="button buttonGhost" type="button" onClick={back}><ArrowLeft size={18} /> Back</button>
+    <button className="button buttonPrimary" type="button" onClick={next} disabled={disabled}>{camera ? <Camera size={19} /> : null}{nextLabel}<ArrowRight size={18} /></button></div>;
+}
+function StripPreview({ strip, theme }: { strip: string | null; theme: StripThemeId }) {
+  return <div className={styles.stripPreview} aria-live="polite">{strip
+    ? <img src={strip} alt={`Completed strip in the ${stripThemes[theme].label} theme`} />
+    : <LoaderCircle className={styles.spinner} aria-label="Rendering your JoyShot" />}</div>;
+}
+function SetupScreen({ title, camera, videoRef, flash, onContinue }: {
+  title?: string; camera: ReturnType<typeof useCamera>; videoRef: React.RefObject<HTMLVideoElement | null>; flash: boolean; onContinue: () => void;
+}) {
+  return <div className={styles.flowScreen}><FlowHeading eyebrow={title ? `${title} guest booth` : "Step 1"}
+    title={title ? `Welcome to ${title}.` : "Get your camera ready."}
+    text={title ? "Step in, line up your shot, and make a keepsake." : "Your camera is only used while you take photos. Nothing is uploaded in solo mode."} />
+    <div className={styles.cameraSetup}><div><CameraPreview flash={flash} mirrored={camera.mirrored} status={camera.status} stream={camera.stream} videoRef={videoRef} /></div>
+      <aside><div className={styles.cameraNote}><ShieldCheck size={21} /><div><strong>Private by design</strong><span>Your camera and photos stay on this device.</span></div></div>
+      {camera.status === "ready" && <CameraControls devices={camera.devices} mirrored={camera.mirrored} selectedDeviceId={camera.selectedDeviceId}
+        onFlip={() => void camera.flipCamera()} onMirrorChange={camera.setMirrored} onSelect={(id) => void camera.selectDevice(id)} />}
+      {camera.status !== "ready" ? <button className="button buttonPrimary" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>
+        {camera.status === "requesting" ? <LoaderCircle className={styles.spinner} /> : <Camera size={19} />}{camera.status === "requesting" ? "Starting camera..." : camera.status === "error" ? "Try camera again" : "Enable camera"}</button>
+        : <button className="button buttonPrimary" type="button" onClick={onContinue}>Camera looks good <ArrowRight size={18} /></button>}
+      {camera.error && <p className={styles.error} role="alert">{camera.error}</p>}</aside></div>
+  </div>;
+}
+function CaptureScreen({ camera, videoRef, flash, countdown, shotIndex, photos, muted, onMute }: {
+  camera: ReturnType<typeof useCamera>; videoRef: React.RefObject<HTMLVideoElement | null>; flash: boolean; countdown: number | null;
+  shotIndex: number; photos: string[]; muted: boolean; onMute: () => void;
+}) {
+  return <div className={styles.captureScreen}><header><span>Pose {shotIndex + 1} of 4</span><button type="button" onClick={onMute} aria-label={muted ? "Turn sound on" : "Mute sound"}>{muted ? <VolumeX /> : <Volume2 />}</button></header>
+    <div className={styles.captureCamera}><CameraPreview flash={flash} mirrored={camera.mirrored} status={camera.status} stream={camera.stream} videoRef={videoRef} />
+      <div className={styles.countdown} aria-live="assertive" aria-atomic="true"><strong key={`${shotIndex}-${countdown}`}>{countdown ?? "Nice!"}</strong><span>{promptForShot(shotIndex)}</span></div></div>
+    <div className={styles.captureDots}>{[0, 1, 2, 3].map((index) => <i key={index} className={index < photos.length ? styles.capturedDot : index === shotIndex ? styles.currentDot : ""}>{index + 1}</i>)}</div>
+  </div>;
 }

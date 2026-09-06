@@ -41,6 +41,16 @@
   font-weight: 700;
 }
 
+.eventLink {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 7px;
+  margin: -10px 0 22px;
+  color: var(--color-primary-hover);
+  font-weight: 900;
+}
+
 .privacyNote svg {
   flex: 0 0 auto;
   margin-top: 2px;
