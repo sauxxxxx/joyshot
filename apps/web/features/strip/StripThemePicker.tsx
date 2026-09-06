@@ -9,7 +9,7 @@ interface StripThemePickerProps {
   value: StripThemeId;
 }
 
-const featuredThemes: StripThemeId[] = ["classic", "pink", "film", "midnight", "mono"];
+const featuredThemes = Object.keys(stripThemes) as StripThemeId[];
 
 export function StripThemePicker({ label = "Choose your strip style", onChange, value }: StripThemePickerProps) {
   return (
@@ -19,7 +19,7 @@ export function StripThemePicker({ label = "Choose your strip style", onChange, 
           <h2 id="strip-style-heading">{label}</h2>
           <p>Tap a preview to restyle your finished strip.</p>
         </div>
-        <span>{featuredThemes.length} curated designs</span>
+        <span>{featuredThemes.length} designed frames</span>
       </div>
       <div className={styles.grid} role="radiogroup" aria-label="Photo strip style">
         {featuredThemes.map((themeId) => {

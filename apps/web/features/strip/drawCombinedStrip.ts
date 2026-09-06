@@ -1,7 +1,7 @@
 import type { PhotoLayoutId } from "@photobooth/shared";
 import { createPhotoEdit, type PhotoEdit, type StripTextOptions } from "../editor/photoEdits";
 import { stripThemes, type StripThemeId } from "./stripThemes";
-import { drawThemeMotif } from "./drawThemeMotif";
+import { drawFrameBacking, drawFrameOverlay, drawThemeMotif } from "./drawThemeMotif";
 import { calculatePhotoLayout, drawImageCover } from "./photoLayouts";
 
 function loadImage(source: string) {
@@ -49,9 +49,9 @@ export async function drawCombinedStrip(
   const images = await Promise.all(edits.map((edit) => loadImage(edit.source)));
   images.forEach((image, index) => {
     const frame = layout.frames[index];
-    context.fillStyle = theme.panel;
-    context.fillRect(frame.x - 6, frame.y - 6, frame.width + 12, frame.height + 12);
+    drawFrameBacking(context, frame, theme, index);
     drawImageCover(context, image, frame, edits[index]);
+    drawFrameOverlay(context, frame, theme, index);
   });
 
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date());

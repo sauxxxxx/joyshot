@@ -1,7 +1,7 @@
 import type { PhotoLayoutId } from "@photobooth/shared";
 import { createPhotoEdit, type PhotoEdit, type StripTextOptions } from "../editor/photoEdits";
 import { stripThemes, type StripThemeId } from "./stripThemes";
-import { drawThemeMotif } from "./drawThemeMotif";
+import { drawFrameBacking, drawFrameOverlay, drawThemeMotif } from "./drawThemeMotif";
 import { calculatePhotoLayout, drawImageCover } from "./photoLayouts";
 
 function loadImage(source: string) {
@@ -11,20 +11,6 @@ function loadImage(source: string) {
     image.onerror = () => reject(new Error("A captured photo could not be loaded."));
     image.src = source;
   });
-}
-
-function drawHeart(context: CanvasRenderingContext2D, x: number, y: number, size: number) {
-  context.save();
-  context.translate(x, y);
-  context.scale(size / 32, size / 32);
-  context.beginPath();
-  context.moveTo(16, 28);
-  context.bezierCurveTo(13, 23, 2, 17, 2, 9);
-  context.bezierCurveTo(2, 1, 12, -2, 16, 5);
-  context.bezierCurveTo(20, -2, 30, 1, 30, 9);
-  context.bezierCurveTo(30, 17, 19, 23, 16, 28);
-  context.fill();
-  context.restore();
 }
 
 export async function drawSoloStrip(
@@ -65,17 +51,9 @@ export async function drawSoloStrip(
   const images = await Promise.all(edits.map((edit) => loadImage(edit.source)));
   images.forEach((image, index) => {
     const frame = layout.frames[index];
-    context.fillStyle = theme.panel;
-    context.fillRect(frame.x - 8, frame.y - 8, frame.width + 16, frame.height + 16);
+    drawFrameBacking(context, frame, theme, index);
     drawImageCover(context, image, frame, edits[index]);
-
-    context.fillStyle = text.brandColor || theme.accent;
-    context.beginPath();
-    context.arc(frame.x + frame.width - 28, frame.y + 30, 22, 0, Math.PI * 2);
-    context.fill();
-    context.fillStyle = theme.badgeForeground;
-    context.font = "800 20px Nunito, Segoe UI, sans-serif";
-    context.fillText(String(index + 1), frame.x + frame.width - 28, frame.y + 31);
+    drawFrameOverlay(context, frame, theme, index);
   });
 
   context.fillStyle = theme.foreground;
@@ -83,8 +61,8 @@ export async function drawSoloStrip(
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date());
   context.fillText((text.caption || date).slice(0, 64).toUpperCase(), layout.width / 2, layout.height - 52);
   context.fillStyle = text.brandColor || theme.accent;
-  drawHeart(context, 66, layout.height - 72, 36);
-  drawHeart(context, layout.width - 102, layout.height - 72, 36);
+  context.fillRect(48, layout.height - 55, 72, 4);
+  context.fillRect(layout.width - 120, layout.height - 55, 72, 4);
 
   return canvas.toDataURL("image/png");
 }
