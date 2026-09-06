@@ -10,10 +10,10 @@
   overflow: hidden;
   aspect-ratio: 4 / 3;
   max-height: 390px;
-  border: 2px solid var(--color-foreground);
-  border-radius: 22px;
+  border: 8px solid #b5afa6;
+  border-radius: 0;
   background: var(--color-camera);
-  box-shadow: 6px 7px 0 var(--color-foreground);
+  box-shadow: inset 0 0 0 1px #302925, 0 0 0 1px #756b63;
 }
 
 .videoCard video {
@@ -49,9 +49,10 @@
   min-height: 36px;
   align-items: center;
   gap: 7px;
-  border-radius: 999px;
+  border: 1px solid #d8cec088;
+  border-radius: 0;
   padding: 7px 12px;
-  background: rgb(15 18 27 / 84%);
+  background: rgb(32 27 24 / 78%);
   color: white;
   font-size: 0.76rem;
   font-weight: 900;

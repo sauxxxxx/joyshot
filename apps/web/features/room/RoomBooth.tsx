@@ -170,10 +170,10 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
           <div className={styles.textOptions}><label>Strip title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Caption<input maxLength={64} placeholder="Optional message" value={caption} onChange={(event) => setCaption(event.target.value)} /></label></div>
           <StripThemePicker onChange={setTheme} value={theme} />
           <div className={styles.resultActions}>
-            <button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}>{strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}{strip ? "Download PNG" : "Rendering..."}</button>
-            {isHost ? <button className="button buttonSecondary" type="button" onClick={() => void roomState.resetSession()}><RefreshCcw size={19} /> Take another</button> : <span className={styles.waitingText}>Waiting for host to reset the booth</span>}
+            <button className="button buttonStamp" type="button" onClick={download} disabled={!strip}>{strip ? <Download size={20} /> : <LoaderCircle className={styles.spinner} size={20} />}{strip ? "Download PNG" : "Rendering..."}</button>
+            {isHost ? <button className="button buttonStrip" type="button" onClick={() => void roomState.resetSession()}><RefreshCcw size={19} /> Take another</button> : <span className={styles.waitingText}>Waiting for host to reset the booth</span>}
           </div>
-          <button className="button buttonGhost" type="button" onClick={leave}><DoorOpen size={19} /> Leave room</button>
+          <button className="button buttonQuiet" type="button" onClick={leave}><DoorOpen size={19} /> Leave room</button>
         </div>
         <div className={styles.stripPreview}>{strip ? <img src={strip} alt={`Combined four-pair strip in the ${stripThemes[theme].label} theme`} /> : <LoaderCircle className={styles.largeSpinner} />}</div>
         <ResultStudio photos={completePairs.flat()} strip={strip} title={title} mode="together" onEditsChange={setEdits} />
@@ -185,7 +185,7 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
     <section className={styles.room} aria-labelledby="room-title">
       <header className={styles.roomHeader}>
         <div><h1 id="room-title">Room {roomCode}</h1><p className={styles.roomNote}><UsersRound size={16} /> Private two-person booth</p></div>
-        <div className={styles.headerActions}><button className="button buttonSecondary" type="button" onClick={() => void copyRoom()}><Clipboard size={18} />{copied ? "Link copied" : "Copy invite"}</button><button className="button buttonGhost" type="button" onClick={leave}><DoorOpen size={18} /> Leave</button></div>
+        <div className={styles.headerActions}><button className="button buttonStamp" type="button" onClick={() => void copyRoom()}><Clipboard size={18} />{copied ? "Link copied" : "Copy invite"}</button><button className="button buttonQuiet" type="button" onClick={leave}><DoorOpen size={18} /> Leave</button></div>
       </header>
       <InviteCard roomCode={roomCode} />
 
@@ -217,8 +217,8 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
       <aside className={styles.controlBar}>
         <div className={styles.statusGroup}><Status label={self?.displayName || "You"} connected cameraReady={Boolean(self?.cameraReady)} ready={Boolean(self?.ready)} /><Status label={partner?.displayName || "Partner"} connected={Boolean(partner?.connected)} cameraReady={Boolean(partner?.cameraReady)} ready={Boolean(partner?.ready)} /></div>
         <div className={styles.primaryControls}>
-          {camera.status !== "ready" ? <button className="button buttonPrimary" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}{camera.status === "requesting" ? "Starting camera..." : "Allow camera"}</button> : <button className="button buttonSecondary" type="button" onClick={() => roomState.updatePresence({ ready: !self?.ready })} disabled={sessionActive}>{self?.ready ? <><Check size={20} /> Ready</> : "I'm ready"}</button>}
-          {isHost ? <button className="button buttonPrimary" type="button" onClick={() => void roomState.startSession()} disabled={!canStart || sessionActive}><Camera size={20} /> Start four photos</button> : <span className={styles.waitingText}>{roomState.room.status === "ready" ? "Waiting for host to start" : "Get both cameras ready"}</span>}
+          {camera.status !== "ready" ? <button className="button buttonShutter" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}{camera.status === "requesting" ? "Starting camera..." : "Allow camera"}</button> : <button className="button buttonStrip" type="button" onClick={() => roomState.updatePresence({ ready: !self?.ready })} disabled={sessionActive}>{self?.ready ? <><Check size={20} /> Ready</> : "I'm ready"}</button>}
+          {isHost ? <button className="button buttonShutter" type="button" onClick={() => void roomState.startSession()} disabled={!canStart || sessionActive}><Camera size={20} /> Start four photos</button> : <span className={styles.waitingText}>{roomState.room.status === "ready" ? "Waiting for host to start" : "Get both cameras ready"}</span>}
         </div>
       </aside>
       {(camera.error || roomState.error || renderError) && <p className={styles.error} role="alert">{camera.error ?? roomState.error ?? renderError}</p>}
@@ -237,5 +237,5 @@ function Status({ label, connected, cameraReady, ready }: { label: string; conne
 }
 
 function RoomMessage({ title, text, loading, action }: { title: string; text: string; loading?: boolean; action?: () => void }) {
-  return <section className={styles.message}>{loading ? <LoaderCircle className={styles.largeSpinner} /> : <UsersRound size={40} />}<h1>{title}</h1><p>{text}</p>{action && <button className="button buttonPrimary" onClick={action}>Back to rooms</button>}</section>;
+  return <section className={styles.message}>{loading ? <LoaderCircle className={styles.largeSpinner} /> : <UsersRound size={40} />}<h1>{title}</h1><p>{text}</p>{action && <button className="button buttonStrip" onClick={action}>Back to rooms</button>}</section>;
 }

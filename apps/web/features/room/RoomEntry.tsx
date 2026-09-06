@@ -58,7 +58,6 @@ export function RoomEntry() {
   return (
     <section className={styles.entry} aria-labelledby="room-entry-title">
       <div className={styles.intro}>
-        <span className="eyebrow"><UsersRound size={17} /> Two-person booth</span>
         <h1 id="room-entry-title">Close the distance for four little moments.</h1>
         <p>Create a private room, share the six-character code, and take the same photos together.</p>
         <div className={styles.privacy}><LockKeyhole size={19} /><span>Rooms hold only two people and expire automatically.</span></div>
@@ -69,7 +68,7 @@ export function RoomEntry() {
           <span className={styles.cardIcon}><UsersRound size={28} /></span>
           <h2>Start a new room</h2>
           <p>You will be the host and control when the shared countdown begins.</p>
-          <button className="button buttonPrimary" type="button" onClick={createRoom} disabled={action !== null}>
+          <button className="button buttonShutter" type="button" onClick={createRoom} disabled={action !== null}>
             {action === "create" ? <LoaderCircle className={styles.spinner} size={20} /> : <UsersRound size={20} />}
             {action === "create" ? "Creating room..." : "Create private room"}
           </button>
@@ -84,7 +83,7 @@ export function RoomEntry() {
             inputMode="text" placeholder="K7P4QX" onChange={(event) => setCode(event.target.value.toUpperCase().replace(/[^A-Z2-9]/gu, ""))}
             aria-describedby={error ? "room-error" : "room-helper"} />
           <span className={styles.helper} id="room-helper">Codes do not use 0, O, 1, or I.</span>
-          <button className="button buttonSecondary" type="submit" disabled={action !== null}>
+          <button className="button buttonStrip" type="submit" disabled={action !== null}>
             {action === "join" ? <LoaderCircle className={styles.spinner} size={20} /> : <ArrowRight size={20} />}
             {action === "join" ? "Opening room..." : "Join room"}
           </button>

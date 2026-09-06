@@ -1,9 +1,9 @@
 .booth { padding: 42px 0 90px; }
-.intro { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 30px; border-bottom: 1px solid #a99a8e; padding-bottom: 22px; }
+.intro { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 30px; padding: 18px; background: #e9e3d9; box-shadow: inset 0 0 0 1px #a99a8e; }
 .intro h1, .editorHeading h1 { margin: 0; font-family: Georgia, serif; font-size: clamp(2.5rem, 5vw, 4.7rem); font-weight: 400; letter-spacing: -.055em; line-height: .95; }
 .intro p, .editorHeading p { width: min(430px, 100%); margin: 0; color: var(--color-muted); }
 .readyWorkspace { display: grid; gap: 24px; align-items: start; }
-.cameraSide { position: sticky; top: 18px; padding: 16px; border: 1px solid #a5968a; background: #d8ddd6; box-shadow: 7px 9px 0 #49362d24; transform: rotate(-.45deg); }
+.cameraSide { position: sticky; top: 18px; padding: 8px; background: #d8ddd6; box-shadow: inset 0 0 0 1px #a5968a; }
 .cameraSide p { margin: 10px 2px 0; color: #5e625d; font-family: monospace; font-size: .66rem; text-transform: uppercase; }
 .setupSide { min-width: 0; padding: 0 8px; }.setupSide > :global(.button) { width: 100%; margin-top: 18px; }
 .error, .message { border: 1px solid currentColor; margin: 14px 0 0; padding: 10px 13px; font-weight: 800; }.error { background: #f2dfe0; color: var(--color-error); }.message { background: #dde8df; color: var(--color-success); }
@@ -20,8 +20,8 @@
 .captureDots i { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid #ffffff4f; border-radius: 50%; color: #ffffff9c; font-size: .8rem; font-style: normal; font-weight: 900; }
 .captureDots .currentDot { border-color: #d7bfc3; color: #d7bfc3; }.captureDots .capturedDot { border-color: white; background: white; color: #161311; }
 .editorWorkspace { display: grid; gap: 34px; }
-.editorHeading { display: flex; align-items: end; justify-content: space-between; gap: 24px; border-bottom: 1px solid #a99a8e; padding-bottom: 22px; }
-.editorHeading > div { display: grid; gap: 12px; }.editorHeading button { display: inline-flex; align-items: center; gap: 7px; border: 0; border-bottom: 1px solid; padding: 6px 0; background: transparent; font-weight: 900; }
+.editorHeading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 18px; background: #e9e3d9; box-shadow: inset 0 0 0 1px #a99a8e; }
+.editorHeading > div { display: grid; gap: 12px; }.editorHeading button { display: inline-flex; align-items: center; gap: 7px; border: 0; padding: 6px 0; background: transparent; font-weight: 900; text-decoration: underline; text-underline-offset: 5px; }
 .captureRail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 25px 20px; background-color: #e3e6df; background-image: linear-gradient(#91a3ad21 1px, transparent 1px), linear-gradient(90deg, #91a3ad21 1px, transparent 1px); background-size: 24px 24px; }
 .captureRail article { overflow: hidden; border: 8px solid #faf6ee; background: #faf6ee; box-shadow: 0 13px 22px #392a2425; transform: rotate(var(--tilt)); transition: transform 180ms ease; }.captureRail article:hover, .captureRail article:focus-within { z-index: 2; transform: translateY(-5px) rotate(0); }
 .captureRail img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }.captureRail button { display: inline-flex; min-height: 38px; align-items: center; gap: 5px; border: 0; padding: 8px 4px 2px; background: transparent; color: var(--color-primary-hover); font-size: .75rem; font-weight: 900; }

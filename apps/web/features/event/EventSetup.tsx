@@ -1,6 +1,6 @@
 "use client";
 
-import { Expand, ImagePlus, LoaderCircle, Play, Trash2 } from "lucide-react";
+import { Expand, ImagePlus, Play, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { drawSoloStrip } from "@/features/strip/drawSoloStrip";
@@ -17,9 +17,14 @@ export function EventSetup() {
   const previewRef = useRef<HTMLElement>(null);
   useEffect(() => { setProfile(readEventProfile() ?? defaultEventProfile); }, []);
   useEffect(() => {
-    let live = true; setPreview("");
-    void drawSoloStrip(demoPhotos, profile.frame, "strip", { title: profile.name, caption: profile.caption, logoSource: profile.logoSource, brandColor: profile.brandColor }).then((image) => live && setPreview(image));
-    return () => { live = false; };
+    let live = true;
+    const timer = window.setTimeout(() => {
+      void drawSoloStrip(demoPhotos, profile.frame, "strip", { title: profile.name, caption: profile.caption, logoSource: profile.logoSource, brandColor: profile.brandColor }).then(async (image) => {
+        const decoded = new Image(); decoded.src = image; await decoded.decode().catch(() => undefined);
+        if (live) setPreview(image);
+      });
+    }, preview ? 110 : 0);
+    return () => { live = false; window.clearTimeout(timer); };
   }, [profile]);
   const update = <K extends keyof EventProfile>(key: K, value: EventProfile[K]) => setProfile((current) => ({ ...current, [key]: value }));
   const save = () => { storeEventProfile(profile); setSaved(true); window.setTimeout(() => setSaved(false), 1800); };
@@ -40,12 +45,12 @@ export function EventSetup() {
         <label className={styles.file}><ImagePlus size={18} /> Add event logo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => uploadLogo(event.target.files?.[0])} /></label>
         {profile.logoSource && <button className={styles.remove} type="button" onClick={() => update("logoSource", undefined)}><Trash2 size={16} /> Remove logo</button>}
         <label>Keep the local gallery for<select value={profile.retentionHours} onChange={(event) => update("retentionHours", Number(event.target.value) as EventProfile["retentionHours"])}><option value="24">24 hours</option><option value="168">7 days</option><option value="0">Until manually deleted</option></select></label>
-        <button className="button buttonPrimary" type="submit">Save event setup</button>{saved && <span className={styles.saved} role="status">Saved on this device</span>}
+        <button className="button buttonStamp" type="submit">Save event setup</button>{saved && <span className={styles.saved} role="status">Saved on this device</span>}
       </form>
       <aside className={styles.preview} ref={previewRef} style={{ "--event-color": profile.brandColor } as React.CSSProperties}>
         <div className={styles.previewCopy}><span>{profile.name || "Your event"}</span><p>{profile.caption || "Your caption"}</p></div>
-        <div className={styles.strip}>{preview ? <img src={preview} alt={`Live ${profile.frame} event strip preview`} /> : <LoaderCircle className={styles.spinner} aria-label="Rendering preview" />}</div>
-        <div className={styles.actions}><Link className="button buttonPrimary" href={`/solo?event=1&frame=${profile.frame}`} onClick={save}><Play size={18} /> Launch guest booth</Link><button className="button buttonSecondary" type="button" onClick={() => void previewRef.current?.requestFullscreen?.()}><Expand size={18} /> Full screen</button></div>
+        <div className={styles.strip}>{preview ? <img src={preview} alt={`Live ${profile.frame} event strip preview`} /> : <i className={styles.blankStrip} aria-label="Preparing the first preview" />}</div>
+        <div className={styles.actions}><Link className="button buttonShutter" href={`/solo?event=1&frame=${profile.frame}`} onClick={save}><Play size={18} /> Launch guest booth</Link><button className="button buttonStrip" type="button" onClick={() => void previewRef.current?.requestFullscreen?.()}><Expand size={18} /> Full screen</button></div>
       </aside>
     </div>
   </section>;

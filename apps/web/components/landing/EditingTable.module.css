@@ -1,0 +1,21 @@
+.section { display: grid; min-height: 760px; grid-template-columns: minmax(260px, .58fr) minmax(0, 1.42fr); background: #d7dfdc; }
+.copy { display: flex; justify-content: center; flex-direction: column; padding: clamp(32px, 5vw, 76px); background: #e8e3d9; }
+.labLabel { width: max-content; border: 1px solid #81746a; padding: 5px 8px; font-family: monospace; font-size: .62rem; letter-spacing: .06em; }
+.copy h2 { margin: 24px 0 14px; font-family: Georgia, serif; font-size: clamp(2.8rem, 5vw, 4.7rem); font-weight: 400; letter-spacing: -.055em; line-height: .94; }
+.copy p { max-width: 390px; color: #59615e; }
+.copy a { align-self: flex-start; margin-top: 18px; }
+.table { position: relative; display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(116px, .3fr); gap: clamp(14px, 2vw, 28px); align-items: center; padding: clamp(24px, 4vw, 64px); background-color: #cbd6d3; background-image: linear-gradient(#7186811d 1px, transparent 1px), linear-gradient(90deg, #7186811d 1px, transparent 1px); background-size: 24px 24px; }
+.contactSheet { position: absolute; z-index: 2; top: 30px; left: 25px; display: grid; width: min(44%, 390px); grid-template-columns: repeat(2, 1fr); gap: 10px; transform: rotate(-2deg); }
+.contactSheet button { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 7px solid #f8f2e8; padding: 0; background: #eee8dd; box-shadow: 0 6px 16px #31241e20; }
+.contactSheet button[aria-pressed="true"] { outline: 3px solid #8f2737; outline-offset: 2px; transform: translateY(-3px); }
+.contactSheet img { width: 100%; height: 100%; object-fit: cover; }
+.contactSheet b { position: absolute; right: 4px; bottom: 3px; padding: 2px 4px; background: #f8f2e8; font-family: monospace; font-size: .58rem; }
+.cropStation { z-index: 1; display: grid; gap: 12px; width: min(100%, 570px); margin: 100px auto 0; border: 1px solid #756960; padding: 12px; background: #b9c6c3; box-shadow: 0 14px 36px #24342f1f; transform: rotate(.5deg); }
+.cropHeader { display: flex; justify-content: space-between; font-family: monospace; font-size: .6rem; letter-spacing: .06em; }
+.cropWindow { position: relative; overflow: hidden; aspect-ratio: 4 / 3; border: 7px solid #ebe6dc; background: #24201d; cursor: grab; touch-action: none; }
+.cropWindow:active { cursor: grabbing; }.cropWindow img { width: 100%; height: 100%; object-fit: cover; user-select: none; }
+.cropMarks { position: absolute; inset: 12%; border: 1px solid #fff9; pointer-events: none; }.cropMarks::before, .cropMarks::after { position: absolute; inset: 33% 0 auto; height: 1px; background: #fff7; content: ""; }.cropMarks::after { inset: 66% 0 auto; }
+.looks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }.looks button { display: grid; grid-template-columns: 16px 1fr; align-items: center; gap: 6px; border: 1px solid #81766d; padding: 6px; background: #ede8df; font-family: monospace; font-size: .58rem; text-transform: uppercase; }.looks button[aria-pressed="true"] { background: #3b302b; color: #f8f2e8; }.looks i { width: 16px; height: 16px; border-radius: 50%; background: linear-gradient(135deg, #9b5c54, #708d89); }
+.liveStrip { display: grid; gap: 5px; align-self: center; border: 1px solid #847870; padding: 18px 10px 12px; background: #f6f1e8; box-shadow: 0 18px 30px #33251f2b; transform: rotate(2.5deg); }.liveStrip > span, .liveStrip > b { font-family: monospace; font-size: .55rem; text-align: center; }.liveStrip img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+@media (max-width: 820px) { .section { grid-template-columns: 1fr; }.table { min-height: 650px; }.copy { padding-block: 64px; }.contactSheet { width: 47%; }.cropStation { margin-top: 90px; } }
+@media (max-width: 520px) { .table { min-height: 720px; grid-template-columns: 1fr; align-content: end; }.contactSheet { top: 25px; right: 25px; left: 25px; width: auto; }.cropStation { margin-top: 230px; }.liveStrip { position: absolute; right: 20px; bottom: 20px; width: 92px; opacity: .92; }.looks { grid-template-columns: repeat(2, 1fr); }.cropStation { margin-bottom: 118px; } }

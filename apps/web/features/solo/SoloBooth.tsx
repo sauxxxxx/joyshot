@@ -45,7 +45,9 @@ export function SoloBooth() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const requestedFrame = params.get("frame");
+    const requestedTimer = Number(params.get("timer"));
     if (requestedFrame && requestedFrame in stripThemes) setTheme(requestedFrame as StripThemeId);
+    if (requestedTimer === 3 || requestedTimer === 5 || requestedTimer === 10) setSettings((current) => ({ ...current, countdownSeconds: requestedTimer }));
     if (params.get("event") === "1") {
       const profile = readEventProfile();
       if (profile) { setEventProfile(profile); setTitle(profile.name); setCaption(profile.caption); setTheme(profile.frame); }
@@ -143,8 +145,8 @@ export function SoloBooth() {
           <StripThemePicker label="Pick a frame" onChange={setTheme} value={theme} />
           <BoothSettingsPicker settings={settings} onChange={setSettings} />
           {camera.status === "ready" && <CameraControls devices={camera.devices} mirrored={camera.mirrored} selectedDeviceId={camera.selectedDeviceId} onFlip={() => void camera.flipCamera()} onMirrorChange={camera.setMirrored} onSelect={(id) => void camera.selectDevice(id)} />}
-          {camera.status !== "ready" ? <button className="button buttonPrimary" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} /> : <Camera size={19} />}{camera.status === "requesting" ? "Starting camera..." : camera.status === "error" ? "Try camera again" : "Enable camera"}</button>
-            : <button className="button buttonPrimary" type="button" onClick={() => void startSession()}><Camera size={19} /> Take four photos</button>}
+          {camera.status !== "ready" ? <button className="button buttonShutter" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} /> : <Camera size={19} />}{camera.status === "requesting" ? "Starting camera..." : camera.status === "error" ? "Try camera again" : "Enable camera"}</button>
+            : <button className="button buttonShutter" type="button" onClick={() => void startSession()}><Camera size={19} /> Take four photos</button>}
           {(camera.error || error) && <p className={styles.error} role="alert">{camera.error || error}</p>}
         </aside>
       </div>
@@ -158,7 +160,7 @@ export function SoloBooth() {
           <div className={styles.textOptions}><label>Title<input maxLength={34} value={title} onChange={(event) => setTitle(event.target.value)} /></label><label>Caption<input maxLength={64} value={caption} placeholder="Our Sunday" onChange={(event) => setCaption(event.target.value)} /></label></div>
         </div><StripPreview strip={strip} theme={theme} /></div>
       <ResultStudio photos={photos} initialEdits={edits} strip={strip} title={title} mode={eventProfile ? "event" : "solo"} retentionHours={eventProfile?.retentionHours} onEditsChange={setEdits} onRetake={(index) => void retake(index)} />
-      <div className={styles.finishActions}><button className="button buttonPrimary" type="button" onClick={download} disabled={!strip}><Download size={18} /> Download PNG</button><button className="button buttonSecondary" type="button" onClick={() => void share()} disabled={!strip}><Share2 size={18} /> Share</button><button className="button buttonSecondary" type="button" onClick={() => void save()} disabled={!strip}><Images size={18} /> Save to gallery</button></div>
+      <div className={styles.finishActions}><button className="button buttonStamp" type="button" onClick={download} disabled={!strip}><Download size={18} /> Download PNG</button><button className="button buttonStamp" type="button" onClick={() => void share()} disabled={!strip}><Share2 size={18} /> Share</button><button className="button buttonStamp" type="button" onClick={() => void save()} disabled={!strip}><Images size={18} /> Save to gallery</button></div>
       {message && <p className={styles.message} role="status">{message}</p>}{error && <p className={styles.error} role="alert">{error}</p>}
     </div>}
   </section>;
