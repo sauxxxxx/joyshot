@@ -8,6 +8,7 @@ import "@fontsource/nunito/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://joyshot.vercel.app"),
   title: {
     default: "JoyShot",
     template: "%s | JoyShot",
@@ -16,12 +17,17 @@ export const metadata: Metadata = {
   applicationName: "JoyShot",
   appleWebApp: { capable: true, title: "JoyShot", statusBarStyle: "default" },
   manifest: "/manifest.webmanifest",
+  openGraph: {
+    title: "JoyShot — Make a little moment last",
+    description: "A private online photo booth for solo, together, and event moments.",
+    images: ["/images/joyshot-booth-hero.webp"],
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#fff8f1",
+  themeColor: "#f4efe6",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {

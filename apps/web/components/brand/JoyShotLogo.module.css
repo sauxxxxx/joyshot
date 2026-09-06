@@ -1,0 +1,7 @@
+.logo { display: inline-flex; min-height: 48px; align-items: center; gap: 10px; color: var(--color-foreground); font-family: var(--font-heading), sans-serif; font-size: 1.35rem; font-weight: 700; letter-spacing: -.045em; }
+.logo svg { width: 34px; height: 34px; overflow: visible; }
+.logo svg rect { fill: var(--color-primary); stroke: var(--color-foreground); stroke-width: 1.7; }
+.logo svg circle { fill: none; stroke: #fffaf2; stroke-width: 2.2; }
+.logo svg path { fill: none; stroke: #fffaf2; stroke-linecap: round; stroke-width: 1.7; }
+.inverted { color: #fffaf2; }
+.inverted svg rect { stroke: #fffaf2; }

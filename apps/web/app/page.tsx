@@ -1,95 +1,83 @@
-import { ArrowRight, Camera, Heart, LockKeyhole, PartyPopper, Sparkles, UsersRound } from "lucide-react";
+import { ArrowRight, ArrowUpRight, CalendarDays, Camera, Download, Images, LockKeyhole, Sparkles, UsersRound, WandSparkles } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-import { PhotoStripArt } from "@/components/landing/PhotoStripArt";
+import { JoyShotLogo } from "@/components/brand/JoyShotLogo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import styles from "./page.module.css";
 
 const steps = [
-  { number: "01", title: "Pick a booth", text: "Shoot solo now, or open a private booth for two." },
-  { number: "02", title: "Strike four poses", text: "A friendly countdown keeps every capture on beat." },
-  { number: "03", title: "Keep the moment", text: "Your finished photo strip is built privately in your browser." },
+  { number: "01", icon: Camera, title: "Strike a pose", text: "Open your camera and let four friendly countdowns do the rest." },
+  { number: "02", icon: WandSparkles, title: "Make it yours", text: "Retake a frame, add a film look, and finish your strip your way." },
+  { number: "03", icon: Download, title: "Keep the moment", text: "Download, share, or tuck it safely into your private gallery." },
 ];
 
 export default function HomePage() {
-  return (
-    <>
-      <a className="skipLink" href="#main-content">Skip to main content</a>
-      <SiteHeader />
-      <main id="main-content">
-        <section className={`container ${styles.hero}`}>
+  return <>
+    <a className="skipLink" href="#main-content">Skip to main content</a>
+    <SiteHeader />
+    <main id="main-content">
+      <section className={styles.hero}>
+        <Image className={styles.heroImage} src="/images/joyshot-booth-hero.webp" alt="Two friends laughing together in a vintage photo booth" fill priority sizes="100vw" />
+        <div className={styles.heroShade} />
+        <div className={`container ${styles.heroInner}`}>
           <div className={styles.heroCopy}>
-            <span className="eyebrow"><Sparkles size={17} /> Your moment, your booth</span>
-            <h1>Make a little moment last.</h1>
-            <p className={styles.lede}>
-              Create photo strips with yourself or someone you love—right from your browser.
-            </p>
+            <span className={styles.kicker}>The internet photo booth</span>
+            <h1>Make a little<br />moment last.</h1>
+            <p>Four photos. Your favorite look. One keepsake made right in your browser.</p>
             <div className={styles.heroActions}>
-              <Link className="button buttonPrimary" href="/solo">
-                <Camera size={20} aria-hidden="true" /> Start taking photos
-              </Link>
-              <Link className="button buttonSecondary" href="/room">
-                <UsersRound size={19} aria-hidden="true" /> Create a booth together
-              </Link>
+              <Link className={styles.primaryCta} href="/solo">Open the booth <Sparkles size={18} /></Link>
+              <Link className={styles.textCta} href="/room">Take photos together <ArrowRight size={17} /></Link>
             </div>
-            <Link className={styles.eventLink} href="/event"><PartyPopper size={17} /> Hosting an event? <ArrowRight size={16} /></Link>
-            <div className={styles.privacyNote}>
-              <LockKeyhole size={17} aria-hidden="true" />
-              Camera access starts only when you allow it. Photos stay on this device in solo mode.
-            </div>
+            <span className={styles.noSignup}><LockKeyhole size={15} /> No account required. Solo photos stay on your device.</span>
           </div>
-          <PhotoStripArt />
-        </section>
-
-        <section className={`container ${styles.modes}`} id="booth-modes" aria-labelledby="modes-title">
-          <div className={styles.sectionHeading}>
-            <span className="eyebrow">Choose your booth</span>
-            <h2 id="modes-title">How are we taking photos today?</h2>
-          </div>
-          <div className={styles.modeGrid}>
-            <article className={`${styles.modeCard} ${styles.soloCard}`}>
-              <div className={styles.modeIcon}><Camera size={28} aria-hidden="true" /></div>
-              <span className={styles.available}>Available now</span>
-              <h3>Just me</h3>
-              <p>Take a four-photo strip on this device. No account and no uploads.</p>
-              <Link className={styles.cardLink} href="/solo">
-                Open solo booth <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            </article>
-            <article className={`${styles.modeCard} ${styles.togetherCard}`}>
-              <div className={styles.modeIcon}><UsersRound size={28} aria-hidden="true" /></div>
-              <span className={styles.nextBadge}>Live rooms</span>
-              <h3>With someone</h3>
-              <p>Take photos together from two devices in one private, synchronized room.</p>
-              <Link className={styles.cardLink} href="/room">
-                Create or join a room <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-            </article>
-          </div>
-        </section>
-
-        <section className={styles.howSection} id="how-it-works" aria-labelledby="how-title">
-          <div className="container">
-            <div className={styles.sectionHeading}>
-              <span className="eyebrow"><Heart size={17} /> Tiny ritual, lasting keepsake</span>
-              <h2 id="how-title">Camera ready to photo strip in three steps.</h2>
-            </div>
-            <ol className={styles.steps}>
-              {steps.map((step) => (
-                <li key={step.number}>
-                  <span>{step.number}</span>
-                  <div><h3>{step.title}</h3><p>{step.text}</p></div>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-      </main>
-      <footer className={styles.footer}>
-        <div className="container">
-          <span>JoyShot</span>
-          <p>Built for smiles, not storage. Solo photos never leave your browser.</p>
         </div>
-      </footer>
-    </>
-  );
+      </section>
+
+      <div className={styles.marquee} aria-label="JoyShot features">
+        <div><span>PHOTO STRIPS</span><i>✦</i><span>VINTAGE FILTERS</span><i>✦</i><span>PRIVATE BY DESIGN</span><i>✦</i><span>TOGETHER FROM ANYWHERE</span><i>✦</i><span>NO DOWNLOAD</span></div>
+      </div>
+
+      <section className={`container ${styles.how}`} id="how-it-works">
+        <header className={styles.sectionHeader}><span>Developing your memories</span><h2>From camera to keepsake<br />without the fuss.</h2></header>
+        <ol>{steps.map(({ number, icon: Icon, title, text }) => <li key={number}><span>{number}</span><Icon size={27} strokeWidth={1.5} /><h3>{title}</h3><p>{text}</p></li>)}</ol>
+      </section>
+
+      <section className={styles.studioSection}>
+        <div className={`container ${styles.studioGrid}`}>
+          <div className={styles.stripStage}>
+            <span className={styles.tape} aria-hidden="true" />
+            <Image src="/images/joyshot-strip-showcase.webp" alt="Four-frame black and white JoyShot of two friends" width={490} height={1725} sizes="(max-width: 700px) 68vw, 370px" />
+            <span className={styles.dateStamp}>SUNDAY · 08:42 PM</span>
+          </div>
+          <div className={styles.studioCopy}>
+            <span className={styles.kicker}>The finishing room</span>
+            <h2>Your photos.<br />Your kind of beautiful.</h2>
+            <p>Keep it clean or make it nostalgic. Every tool is there when you want it—and out of the way when you don’t.</p>
+            <div className={styles.filterRail}><span>Original</span><span>Mono</span><span>Golden hour</span><span>Film ’98</span></div>
+            <ul><li>Individual retakes</li><li>Crop and zoom</li><li>Frames and layouts</li><li>Captions and filters</li></ul>
+            <Link className={styles.inkLink} href="/solo">Make your own <ArrowUpRight size={18} /></Link>
+          </div>
+        </div>
+      </section>
+
+      <section className={`container ${styles.together}`}>
+        <div className={styles.togetherCopy}><span className={styles.kicker}>JoyShot together</span><h2>Distance doesn’t cancel photo day.</h2><p>One countdown. Two cameras. A shared strip that belongs to both of you.</p><Link className={styles.lightButton} href="/room"><UsersRound size={18} /> Start a booth together</Link></div>
+        <div className={styles.screenPair} aria-label="Illustration of a synchronized two-person booth">
+          <div className={styles.screen}><span>YOU</span><div className={styles.portraitOne} /></div>
+          <div className={styles.screen}><span>YOUR PERSON</span><div className={styles.portraitTwo} /></div>
+          <strong>3</strong><small>ROOM J7PK4M · BOTH READY</small>
+        </div>
+      </section>
+
+      <section className={`container ${styles.destinations}`}>
+        <Link className={styles.destination} href="/gallery"><span><Images size={22} /> Your private archive</span><h2>Keep the good ones.</h2><p>Save finished strips on this device, reopen them, and take them wherever you like.</p><strong>Open gallery <ArrowUpRight size={18} /></strong></Link>
+        <Link className={`${styles.destination} ${styles.eventCard}`} href="/event"><span><CalendarDays size={22} /> JoyShot for events</span><h2>Make the big day feel personal.</h2><p>Turn any screen into a branded guest booth for weddings, parties, and pop-ups.</p><strong>Create an event booth <ArrowUpRight size={18} /></strong></Link>
+      </section>
+
+      <section className={styles.privacySection}><div className="container"><LockKeyhole size={29} /><span>Private by design</span><h2>Your face isn’t our business.</h2><p>Solo photos are processed in your browser. Nothing leaves your device unless you choose to save or share it.</p></div></section>
+
+      <section className={styles.finalCta}><div className="container"><span className={styles.kicker}>Ready when you are</span><h2>Fix your hair.<br />Make a JoyShot.</h2><Link className={styles.primaryCta} href="/solo">Open the booth <ArrowRight size={18} /></Link></div></section>
+    </main>
+    <footer className={styles.footer}><div className="container"><JoyShotLogo inverted /><p>The internet photo booth for moments worth keeping.</p><nav aria-label="Footer navigation"><Link href="/solo">Booth</Link><Link href="/room">Together</Link><Link href="/gallery">Gallery</Link><Link href="/event">Events</Link></nav><small>Made for little moments.</small></div></footer>
+  </>;
 }
