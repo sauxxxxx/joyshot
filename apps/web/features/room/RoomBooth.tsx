@@ -24,7 +24,7 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const capturedScheduleRef = useRef<string | null>(null);
   const roomState = useRoom(roomCode);
-  const camera = useCamera();
+  const camera = useCamera({ autoStart: true });
   const [countdown, setCountdown] = useState<number | null>(null);
   const [flash, setFlash] = useState(false);
   const [pairs, setPairs] = useState<Array<string[] | undefined>>([]);
@@ -217,7 +217,8 @@ export function RoomBooth({ roomCode }: { roomCode: string }) {
       <aside className={styles.controlBar}>
         <div className={styles.statusGroup}><Status label={self?.displayName || "You"} connected cameraReady={Boolean(self?.cameraReady)} ready={Boolean(self?.ready)} /><Status label={partner?.displayName || "Partner"} connected={Boolean(partner?.connected)} cameraReady={Boolean(partner?.cameraReady)} ready={Boolean(partner?.ready)} /></div>
         <div className={styles.primaryControls}>
-          {camera.status !== "ready" ? <button className="button buttonShutter" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} size={20} /> : <Camera size={20} />}{camera.status === "requesting" ? "Starting camera..." : "Allow camera"}</button> : <button className="button buttonStrip" type="button" onClick={() => roomState.updatePresence({ ready: !self?.ready })} disabled={sessionActive}>{self?.ready ? <><Check size={20} /> Ready</> : "I'm ready"}</button>}
+          {camera.status === "error" && <button className="button buttonShutter" type="button" onClick={() => void camera.start()}><Camera size={20} /> Try camera again</button>}
+          {camera.status === "ready" && <button className="button buttonStrip" type="button" onClick={() => roomState.updatePresence({ ready: !self?.ready })} disabled={sessionActive}>{self?.ready ? <><Check size={20} /> Ready</> : "I'm ready"}</button>}
           {isHost ? <button className="button buttonShutter" type="button" onClick={() => void roomState.startSession()} disabled={!canStart || sessionActive}><Camera size={20} /> Start four photos</button> : <span className={styles.waitingText}>{roomState.room.status === "ready" ? "Waiting for host to start" : "Get both cameras ready"}</span>}
         </div>
       </aside>

@@ -25,7 +25,7 @@ const wait = (milliseconds: number) => new Promise((resolve) => window.setTimeou
 export function SoloBooth() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cancelledRef = useRef(false);
-  const camera = useCamera();
+  const camera = useCamera({ autoStart: true });
   const [view, setView] = useState<BoothView>("ready");
   const [theme, setTheme] = useState<StripThemeId>("classic");
   const [settings, setSettings] = useState<BoothSettings>({ countdownSeconds: 5, layout: "strip" });
@@ -145,8 +145,8 @@ export function SoloBooth() {
           <StripThemePicker label="Pick a frame" onChange={setTheme} value={theme} />
           <BoothSettingsPicker settings={settings} onChange={setSettings} />
           {camera.status === "ready" && <CameraControls devices={camera.devices} mirrored={camera.mirrored} selectedDeviceId={camera.selectedDeviceId} onFlip={() => void camera.flipCamera()} onMirrorChange={camera.setMirrored} onSelect={(id) => void camera.selectDevice(id)} />}
-          {camera.status !== "ready" ? <button className="button buttonShutter" type="button" onClick={() => void camera.start()} disabled={camera.status === "requesting"}>{camera.status === "requesting" ? <LoaderCircle className={styles.spinner} /> : <Camera size={19} />}{camera.status === "requesting" ? "Starting camera..." : camera.status === "error" ? "Try camera again" : "Enable camera"}</button>
-            : <button className="button buttonShutter" type="button" onClick={() => void startSession()}><Camera size={19} /> Take four photos</button>}
+          {camera.status === "error" && <button className="button buttonShutter" type="button" onClick={() => void camera.start()}><Camera size={19} /> Try camera again</button>}
+          {camera.status === "ready" && <button className="button buttonShutter" type="button" onClick={() => void startSession()}><Camera size={19} /> Take four photos</button>}
           {(camera.error || error) && <p className={styles.error} role="alert">{camera.error || error}</p>}
         </aside>
       </div>

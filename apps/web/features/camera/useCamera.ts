@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CameraStatus = "idle" | "requesting" | "ready" | "error";
 
@@ -26,7 +26,8 @@ function getCameraErrorMessage(error: unknown) {
   }
 }
 
-export function useCamera() {
+export function useCamera({ autoStart = false }: { autoStart?: boolean } = {}) {
+  const autoStartAttemptedRef = useRef(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -103,6 +104,12 @@ export function useCamera() {
     const next = devices[(currentIndex + 1) % devices.length];
     if (next) await selectDevice(next.deviceId);
   }, [devices, selectDevice, selectedDeviceId]);
+
+  useEffect(() => {
+    if (!autoStart || autoStartAttemptedRef.current) return;
+    autoStartAttemptedRef.current = true;
+    void start();
+  }, [autoStart, start]);
 
   useEffect(() => () => {
     stream?.getTracks().forEach((track) => track.stop());
