@@ -23,9 +23,9 @@ function runRequest<T>(mode: IDBTransactionMode, action: (store: IDBObjectStore)
   return openGallery().then((database) => new Promise<T>((resolve, reject) => {
     const transaction = database.transaction(STORE, mode);
     const request = action(transaction.objectStore(STORE));
-    request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error ?? new Error("The gallery request failed."));
-    transaction.oncomplete = () => database.close();
+    transaction.oncomplete = () => { database.close(); resolve(request.result); };
+    transaction.onabort = () => { database.close(); reject(transaction.error ?? new Error("The gallery could not save this photo.")); };
   }));
 }
 

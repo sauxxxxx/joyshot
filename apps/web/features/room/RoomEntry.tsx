@@ -19,13 +19,13 @@ export function RoomEntry() {
     setError(null);
     const socket = getSocket();
     const timeout = window.setTimeout(() => {
-      setError("The realtime server did not respond. Check that port 3001 is running and reachable.");
+      setError("The shared booth is taking too long to respond. Try again in a moment.");
       setAction(null);
     }, 8_000);
     const handleConnectionError = () => {
       window.clearTimeout(timeout);
       socket.disconnect();
-      setError("The realtime server could not be reached from this device.");
+      setError("The shared booth is unavailable right now. Check your connection or try a solo session.");
       setAction(null);
     };
     socket.once("connect_error", handleConnectionError);
@@ -58,14 +58,13 @@ export function RoomEntry() {
   return (
     <section className={styles.entry} aria-labelledby="room-entry-title">
       <div className={styles.intro}>
-        <h1 id="room-entry-title">Close the distance for four little moments.</h1>
+        <h1 id="room-entry-title">Four photos. Both of you.</h1>
         <p>Create a private room, share the six-character code, and take the same photos together.</p>
         <div className={styles.privacy}><LockKeyhole size={19} /><span>Rooms hold only two people and expire automatically.</span></div>
       </div>
 
       <div className={styles.actions}>
         <article className={styles.createCard}>
-          <span className={styles.cardIcon}><UsersRound size={28} /></span>
           <h2>Start a new room</h2>
           <p>You will be the host and control when the shared countdown begins.</p>
           <button className="button buttonShutter" type="button" onClick={createRoom} disabled={action !== null}>
@@ -75,7 +74,6 @@ export function RoomEntry() {
         </article>
 
         <form className={styles.joinCard} onSubmit={joinRoom} noValidate>
-          <span className={styles.cardIcon}><KeyRound size={28} /></span>
           <h2>Join your person</h2>
           <p>Enter the room code they sent you.</p>
           <label htmlFor="room-code">Six-character room code</label>

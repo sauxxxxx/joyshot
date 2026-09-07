@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import { RoomBooth } from "@/features/room/RoomBooth";
 
 interface RoomPageProps { params: Promise<{ roomCode: string }> }
@@ -11,5 +10,5 @@ export async function generateMetadata({ params }: RoomPageProps): Promise<Metad
 
 export default async function RoomPage({ params }: RoomPageProps) {
   const { roomCode } = await params;
-  return <><SiteHeader /><main className="container"><RoomBooth roomCode={roomCode.toUpperCase()} /></main></>;
+  return <main className="container"><RoomBooth roomCode={roomCode.toUpperCase()} /></main>;
 }

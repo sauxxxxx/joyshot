@@ -13,11 +13,11 @@ export function CameraPreview({ flash, status, stream, videoRef, mirrored = true
     <header><span>JOYSHOT VIEWFINDER</span><b>{status === "ready" ? "LIVE" : "STANDBY"}</b></header>
     <div className={styles.view}>
       <video ref={videoRef} className={`${styles.video} ${mirrored ? "" : styles.notMirrored}`} autoPlay muted playsInline aria-label="Live preview from your camera" />
-      {!stream && <div className={styles.placeholder}><span className={styles.placeholderIcon} aria-hidden="true">{status === "error" ? <CameraOff size={29} /> : <Camera size={29} />}</span><strong>{status === "requesting" ? "Opening the lens..." : status === "error" ? "The lens needs permission" : "Preparing the lens"}</strong><span>{status === "error" ? "Allow Camera in your browser settings, then try again." : "Chrome may ask you to allow camera access."}</span></div>}
+      {!stream && <div className={styles.placeholder} role="status"><span className={styles.placeholderIcon} aria-hidden="true">{status === "error" ? <CameraOff size={29} /> : <Camera size={29} />}</span><strong>{status === "requesting" ? "Let us see your smile." : status === "error" ? "The camera needs a hand." : "Opening the booth…"}</strong><span>{status === "error" ? "Check the message below to reconnect." : "Allow Camera when your browser asks. No microphone needed."}</span></div>}
       <i className={styles.focusFrame} aria-hidden="true" />
       <div className={styles.label}><i aria-hidden="true" /><span>{status === "ready" ? "CAMERA READY" : status === "requesting" ? "CONNECTING" : "CAMERA OFF"}</span></div>
       <div className={`${styles.flash} ${flash ? styles.flashActive : ""}`} aria-hidden="true" />
     </div>
-    <footer><span>ISO 400</span><span>F 2.8</span><span>1/60</span><span>{mirrored ? "MIRROR" : "NORMAL"}</span></footer>
+    <footer><span>FOUR PHOTOS</span><span>ON THIS DEVICE</span><span>{mirrored ? "MIRRORED" : "NORMAL"}</span></footer>
   </div>;
 }

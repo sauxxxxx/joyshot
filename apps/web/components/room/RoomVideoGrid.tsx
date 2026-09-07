@@ -6,6 +6,7 @@ import styles from "./RoomVideoGrid.module.css";
 
 interface RoomVideoGridProps {
   flash: boolean;
+  mirrored: boolean;
   localReady: boolean;
   localStream: MediaStream | null;
   localVideoRef: RefObject<HTMLVideoElement | null>;
@@ -32,7 +33,7 @@ export function RoomVideoGrid(props: RoomVideoGridProps) {
   return (
     <div className={styles.grid}>
       <div className={styles.videoCard}>
-        {props.localStream ? <video className={styles.localVideo} ref={props.localVideoRef} autoPlay muted playsInline aria-label="Your live camera preview" /> : (
+        {props.localStream ? <video className={props.mirrored ? styles.localVideo : undefined} ref={props.localVideoRef} autoPlay muted playsInline aria-label="Your live camera preview" /> : (
           <div className={styles.placeholder}><Camera size={34} /><strong>Your camera</strong><span>Allow access to appear here.</span></div>
         )}
         <div className={styles.videoLabel}>{props.localReady ? <CheckCircle2 size={17} /> : <Camera size={17} />} You · {props.localReady ? "Ready" : "Setting up"}</div>

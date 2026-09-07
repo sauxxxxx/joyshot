@@ -42,4 +42,23 @@ describe("useCamera automatic start", () => {
     expect(result.current.status).toBe("idle");
     expect(getUserMedia).not.toHaveBeenCalled();
   });
+
+  it("stops a late permission response after the booth unmounts", async () => {
+    const { getUserMedia, stream, track } = installCameraMock();
+    let resolve!: (stream: MediaStream) => void;
+    getUserMedia.mockReturnValue(new Promise<MediaStream>(done => { resolve = done; }));
+    const { unmount } = renderHook(() => useCamera({ autoStart: true }));
+    await waitFor(() => expect(getUserMedia).toHaveBeenCalledTimes(1));
+    unmount();
+    await act(async () => { resolve(stream); });
+    expect(track.stop).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a working camera when device enumeration fails", async () => {
+    installCameraMock();
+    vi.mocked(navigator.mediaDevices.enumerateDevices).mockRejectedValue(new Error("Unavailable"));
+    const { result } = renderHook(() => useCamera({ autoStart: true }));
+    await waitFor(() => expect(result.current.status).toBe("ready"));
+    expect(result.current.error).toBeNull();
+  });
 });

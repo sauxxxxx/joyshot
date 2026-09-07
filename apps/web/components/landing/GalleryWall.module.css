@@ -7,3 +7,4 @@
 @media (max-width: 900px) { .archive { grid-template-columns: 1fr; }.archiveLabel { padding-block: 66px; }.wall { min-height: 580px; grid-template-columns: repeat(5, minmax(90px, 1fr)); overflow-x: auto; } }
 @media (max-width: 560px) { .wall { min-height: 500px; grid-template-columns: repeat(5, 118px); padding-inline: 35px; }.archiveLabel h2 { font-size: 3rem; } }
 @media (prefers-reduced-motion: reduce) { .wall article { transition: none; } }
+.viewer { max-width: 90vw; max-height: 92dvh; padding: 24px; background: #f6f1e8; border: 1px solid #b9aa9b; }.viewer::backdrop { background: #1c1714dd; }.viewer img { display: block; max-width: 100%; max-height: 80dvh; }.viewer button { position: absolute; right: 4px; top: 4px; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #77675d; background: #f6f1e8; }

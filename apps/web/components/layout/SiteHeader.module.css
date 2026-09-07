@@ -9,4 +9,4 @@
 .boothLink { position: relative; display: inline-flex; min-height: 42px; align-items: center; gap: 9px; border: 1px solid #5b3d3a; padding: 6px 14px 6px 7px; background: #8f2637; color: #fff9ef; font-size: .7rem; font-weight: 900; text-transform: uppercase; }
 .boothLink span { display: grid; width: 27px; height: 27px; place-items: center; border: 1px solid #f7e8d2; border-radius: 50%; background: #f1d7ca; color: #6f1d2b; font-family: Georgia, serif; }
 @media (min-width: 700px) { .navLink { display: inline-flex; } }
-@media (max-width: 620px) { .header { padding: 10px 10px 0; }.inner { min-height: 54px; padding-left: 10px; }.boothLink { width: 42px; overflow: hidden; padding: 6px 7px; color: transparent; gap: 0; white-space: nowrap; }.boothLink span { flex: 0 0 auto; color: #6f1d2b; } }
+@media (max-width: 620px) { .header { padding: 10px 10px 0; }.inner { min-height: 54px; padding-left: 10px; }.boothLink { padding: 6px 10px; gap: 7px; white-space: nowrap; }.boothLink span { flex: 0 0 auto; color: #6f1d2b; } }

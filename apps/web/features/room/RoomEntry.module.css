@@ -131,3 +131,4 @@
     min-height: 310px;
   }
 }
+.entry { gap: 28px; }.intro h1 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 400; }.actions article,.joinCard { border: 0; box-shadow: none; padding: 22px; background: #e9e0d2; }.createCard { background: #e7d4cd !important; }.actions h2 { font-size: 1.5rem; font-weight: 400; }.privacy { font-size: .8rem; font-weight: 400; }

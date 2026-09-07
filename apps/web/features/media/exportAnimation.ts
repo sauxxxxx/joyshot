@@ -1,5 +1,6 @@
+import { drawImageCover } from "@/features/strip/photoLayouts";
 import { GIFEncoder, applyPalette, quantize } from "gifenc";
-import { photoFilterCss, type PhotoEdit } from "@/features/editor/photoEdits";
+import { type PhotoEdit } from "@/features/editor/photoEdits";
 
 function loadImage(source: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -12,18 +13,7 @@ function loadImage(source: string) {
 
 async function drawFrame(context: CanvasRenderingContext2D, edit: PhotoEdit, width: number, height: number) {
   const image = await loadImage(edit.source);
-  const sourceRatio = image.width / image.height;
-  const ratio = width / height;
-  let sx = 0; let sy = 0; let sw = image.width; let sh = image.height;
-  if (sourceRatio > ratio) { sw = image.height * ratio; sx = (image.width - sw) / 2; }
-  else { sh = image.width / ratio; sy = (image.height - sh) / 2; }
-  const zoom = Math.max(1, edit.zoom);
-  const nextWidth = sw / zoom; const nextHeight = sh / zoom;
-  sx += (sw - nextWidth) / 2; sy += (sh - nextHeight) / 2;
-  context.save();
-  context.filter = photoFilterCss(edit);
-  context.drawImage(image, sx, sy, nextWidth, nextHeight, 0, 0, width, height);
-  context.restore();
+  drawImageCover(context, image, { x: 0, y: 0, width, height }, edit);
 }
 
 export async function createGif(edits: PhotoEdit[]) {

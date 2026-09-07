@@ -3,31 +3,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CameraStatus = "idle" | "requesting" | "ready" | "error";
-
-export interface CameraDevice {
-  deviceId: string;
-  label: string;
-}
+export interface CameraDevice { deviceId: string; label: string; }
 
 function getCameraErrorMessage(error: unknown) {
-  if (!(error instanceof DOMException)) {
-    return "We could not start your camera. Check your browser settings and try again.";
-  }
-
-  switch (error.name) {
-    case "NotAllowedError":
-      return "Camera access is blocked. Allow it in your browser settings, then try again.";
-    case "NotFoundError":
-      return "No camera was found. Connect a camera and try again.";
-    case "NotReadableError":
-      return "Your camera is being used by another app. Close it there, then try again.";
-    default:
-      return "We could not start your camera. Check your browser settings and try again.";
-  }
+  const name = error instanceof DOMException ? error.name : "";
+  if (name === "NotAllowedError") return "Camera access wasn't allowed. Open the site controls beside your browser's address, allow Camera, then try again.";
+  if (name === "NotFoundError") return "No camera was found. Connect a camera, then try again.";
+  if (name === "NotReadableError") return "Your camera is busy. Close other apps using it, then try again.";
+  return "Your camera could not start. Check the connection and try again.";
 }
 
 export function useCamera({ autoStart = false }: { autoStart?: boolean } = {}) {
-  const autoStartAttemptedRef = useRef(false);
+  const activeStream = useRef<MediaStream | null>(null);
+  const requestId = useRef(0);
+  const mounted = useRef(false);
+  const selected = useRef("");
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -40,93 +30,58 @@ export function useCamera({ autoStart = false }: { autoStart?: boolean } = {}) {
     const cameras = (await navigator.mediaDevices.enumerateDevices())
       .filter(({ kind }) => kind === "videoinput")
       .map(({ deviceId, label }, index) => ({ deviceId, label: label || `Camera ${index + 1}` }));
-    setDevices(cameras);
-    setSelectedDeviceId((current) => current || cameras[0]?.deviceId || "");
+    if (mounted.current) setDevices(cameras);
   }, []);
 
   const stop = useCallback(() => {
-    setStream((activeStream) => {
-      activeStream?.getTracks().forEach((track) => track.stop());
-      return null;
-    });
-    setStatus("idle");
+    requestId.current += 1;
+    activeStream.current?.getTracks().forEach(track => track.stop());
+    activeStream.current = null;
+    if (mounted.current) { setStream(null); setStatus("idle"); }
   }, []);
 
   const start = useCallback(async (deviceId?: string) => {
-    if (!window.isSecureContext) {
-      setError("Camera access requires HTTPS on another device. Open the secure LAN URL provided by npm run dev:https.");
-      setStatus("error");
-      return;
+    const id = ++requestId.current;
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setError(!window.isSecureContext ? "Open JoyShot using HTTPS to use your camera." : "This browser cannot access a camera. Try Chrome, Edge, or Safari.");
+      setStatus("error"); return;
     }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("This browser does not support camera access. Try a current version of Chrome, Edge, or Safari.");
-      setStatus("error");
-      return;
-    }
-
-    setStatus("requesting");
-    setError(null);
-
+    setStatus("requesting"); setError(null);
     try {
-      const nextStream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: {
-          ...(deviceId || selectedDeviceId
-            ? { deviceId: { exact: deviceId || selectedDeviceId } }
-            : { facingMode: "user" }),
-          width: { ideal: 1280 },
-          height: { ideal: 960 },
-        },
+      const chosen = deviceId || selected.current;
+      const next = await navigator.mediaDevices.getUserMedia({ audio: false, video: {
+        ...(chosen ? { deviceId: { exact: chosen } } : { facingMode: "user" }),
+        width: { ideal: 1280 }, height: { ideal: 960 },
+      } });
+      if (!mounted.current || id !== requestId.current) { next.getTracks().forEach(track => track.stop()); return; }
+      activeStream.current?.getTracks().forEach(track => track.stop());
+      activeStream.current = next; setStream(next);
+      selected.current = next.getVideoTracks()[0]?.getSettings().deviceId || "";
+      setSelectedDeviceId(selected.current); setStatus("ready");
+      next.getVideoTracks()[0]?.addEventListener?.("ended", () => {
+        if (activeStream.current !== next || !mounted.current) return;
+        stop(); setError("The camera disconnected. Reconnect it and try again."); setStatus("error");
       });
-      setStream((activeStream) => {
-        activeStream?.getTracks().forEach((track) => track.stop());
-        return nextStream;
-      });
-      const activeDeviceId = nextStream.getVideoTracks()[0]?.getSettings().deviceId;
-      if (activeDeviceId) setSelectedDeviceId(activeDeviceId);
-      setStatus("ready");
-      await refreshDevices();
-    } catch (cameraError) {
-      setError(getCameraErrorMessage(cameraError));
-      setStatus("error");
+      await refreshDevices().catch(() => undefined);
+    } catch (failure) {
+      if (mounted.current && id === requestId.current) { setError(getCameraErrorMessage(failure)); setStatus("error"); }
     }
-  }, [refreshDevices, selectedDeviceId]);
+  }, [refreshDevices, stop]);
 
-  const selectDevice = useCallback(async (deviceId: string) => {
-    setSelectedDeviceId(deviceId);
-    await start(deviceId);
-  }, [start]);
-
+  const selectDevice = useCallback(async (deviceId: string) => { await start(deviceId); }, [start]);
   const flipCamera = useCallback(async () => {
     if (devices.length < 2) return;
-    const currentIndex = devices.findIndex(({ deviceId }) => deviceId === selectedDeviceId);
-    const next = devices[(currentIndex + 1) % devices.length];
-    if (next) await selectDevice(next.deviceId);
-  }, [devices, selectDevice, selectedDeviceId]);
+    const index = devices.findIndex(device => device.deviceId === selected.current);
+    await start(devices[(index + 1) % devices.length].deviceId);
+  }, [devices, start]);
 
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; stop(); }; }, [stop]);
   useEffect(() => {
-    if (!autoStart || autoStartAttemptedRef.current) return;
-    autoStartAttemptedRef.current = true;
-    void start();
+    if (!autoStart) return;
+    // Defer one task so React's development effect replay cannot request twice.
+    const timer = window.setTimeout(() => { void start(); }, 0);
+    return () => window.clearTimeout(timer);
   }, [autoStart, start]);
 
-  useEffect(() => () => {
-    stream?.getTracks().forEach((track) => track.stop());
-  }, [stream]);
-
-  return {
-    devices,
-    error,
-    flipCamera,
-    mirrored,
-    refreshDevices,
-    selectDevice,
-    selectedDeviceId,
-    setMirrored,
-    start,
-    status,
-    stop,
-    stream,
-  };
+  return { devices, error, flipCamera, mirrored, refreshDevices, selectDevice, selectedDeviceId, setMirrored, start, status, stop, stream };
 }

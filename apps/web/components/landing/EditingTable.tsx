@@ -31,7 +31,7 @@ export function EditingTable() {
       <span className={styles.labLabel}>JOYSHOT DARKROOM · TABLE 02</span>
       <h2 id="editing-title">Keep that one.</h2>
       <p>Pick a print, drag the crop, and try a finish. The strip on the lightbox keeps up.</p>
-      <Link className="button buttonStrip" href="/solo">Open the editing room</Link>
+      <Link className="button buttonStrip" href="/solo">Make your own</Link>
     </div>
     <div className={styles.table}>
       <div className={styles.contactSheet} aria-label="Choose a photo to edit">

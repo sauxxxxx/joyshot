@@ -18,17 +18,19 @@ export function GalleryWall() {
   const [positions, setPositions] = useState(starts);
   const drag = useRef<{ index: number; x: number; y: number; baseX: number; baseY: number; moved: boolean } | null>(null);
   const suppressOpen = useRef(false);
+  const viewer = useRef<HTMLDialogElement>(null);
+  useEffect(() => { if (opened !== null) viewer.current?.showModal(); else viewer.current?.close(); }, [opened]);
   useEffect(() => { let live = true; void Promise.all(themes.map((theme, index) => drawSoloStrip(demoPhotos, theme, "strip", { title: ["Us lately", "Sunday", "Still here", "No occasion", "Soft copy"][index], caption: "JOYSHOT / THIS DEVICE" }))).then((items) => live && setStrips(items)); return () => { live = false; }; }, []);
   const move = (event: ReactPointerEvent<HTMLElement>) => { const current = drag.current; if (!current) return; const x = current.baseX + event.clientX - current.x; const y = current.baseY + event.clientY - current.y; if (Math.abs(x - current.baseX) > 3 || Math.abs(y - current.baseY) > 3) current.moved = true; setPositions((items) => items.map((position, index) => index === current.index ? { x, y } : position)); };
 
   return <section className={styles.archive} aria-labelledby="gallery-wall-title">
-    <div className={styles.archiveLabel}><span>PRIVATE ARCHIVE · THIS BROWSER</span><h2 id="gallery-wall-title">Your pictures are still right here.</h2><p>Pick one up. Move it around. Open it again. Nothing leaves this device unless you choose.</p><Link className="button buttonStamp" href="/gallery">Open my gallery</Link></div>
+    <div className={styles.archiveLabel}><h2 id="gallery-wall-title">Your pictures are still right here.</h2><p>Try these sample strips. Your own saved photos live in your private gallery, in this browser.</p><Link className="button buttonStamp" href="/gallery">Open my gallery</Link></div>
     <div className={styles.wall} aria-label="Interactive JoyShot gallery wall">
       {themes.map((theme, index) => hidden.includes(index) ? null : <article key={theme} style={{ "--x": `${positions[index].x}px`, "--y": `${positions[index].y}px`, "--tilt": `${[-4, 2.5, -1.5, 4, -2.5][index]}deg` } as React.CSSProperties} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); suppressOpen.current = false; drag.current = { index, x: event.clientX, y: event.clientY, baseX: positions[index].x, baseY: positions[index].y, moved: false }; }} onPointerMove={move} onPointerUp={() => { suppressOpen.current = Boolean(drag.current?.moved); drag.current = null; }}>
         <span className={styles.tape} aria-hidden="true" /><button type="button" className={styles.stripButton} onClick={() => { if (!suppressOpen.current) setOpened(index); suppressOpen.current = false; }} aria-label={`Open ${theme} strip`}>{strips[index] ? <img src={strips[index]} alt={`Rendered ${theme} JoyShot strip`} draggable={false} /> : <i className={styles.blank} />}</button>
         <div><Grip size={14} aria-hidden="true" /><a href={strips[index] || undefined} download={`joyshot-${theme}.png`} aria-label={`Download ${theme} strip`}><Download size={14} /></a><button type="button" onClick={() => setHidden((items) => [...items, index])} aria-label={`Remove ${theme} strip`}><X size={14} /></button></div>
       </article>)}
     </div>
-    {opened !== null && strips[opened] && <div className={styles.lightbox} role="dialog" aria-modal="true" aria-label="Opened JoyShot strip" onClick={() => setOpened(null)}><div onClick={(event) => event.stopPropagation()}><button type="button" onClick={() => setOpened(null)} aria-label="Close strip"><X /></button><img src={strips[opened]} alt="Enlarged JoyShot strip" /></div></div>}
+    <dialog ref={viewer} className={styles.viewer} aria-label="Sample JoyShot strip" onCancel={() => setOpened(null)} onClick={event => { if (event.target === event.currentTarget) setOpened(null); }}>{opened !== null && strips[opened] && <><button type="button" autoFocus onClick={() => setOpened(null)} aria-label="Close strip"><X /></button><img src={strips[opened]} alt="Enlarged sample JoyShot strip" /></>}</dialog>
   </section>;
 }

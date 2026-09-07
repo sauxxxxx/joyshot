@@ -199,3 +199,5 @@
   .spinner,
   .largeSpinner { animation-duration: 1.8s !important; }
 }
+.roomHeader h1 { font-size: clamp(1.4rem, 3vw, 2.2rem); }.room .controlBar { margin-top: 12px; padding: 12px; background: #eee6da; box-shadow: none; }.disclosure,.invite { padding: 10px 0; }.disclosure summary,.invite summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-size: .85rem; }.disclosure .boothSettings,.disclosure .socialBar { margin: 0; background: #eee6da; border-radius: 0; border-width: 1px; }
+.room[data-capturing="true"] .disclosure,.room[data-capturing="true"] .connectionQuality,.room[data-capturing="true"] .invite { display: none; }.room .progressRow > div { border-radius: 0; min-height: 36px; border-width: 1px; }.room .countdown { border-radius: 0; background: #16100b12; }.room .statusGroup > div { border-radius: 0; padding: 5px 8px; }.room .videoArea { max-width: 1120px; margin: auto; }

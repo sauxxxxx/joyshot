@@ -36,9 +36,9 @@ export async function drawCombinedStrip(
   context.fillStyle = theme.foreground;
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = "700 56px Fredoka, Trebuchet MS, sans-serif";
+  context.font = "bold 56px Georgia, serif";
   context.fillText((text.title || "Better together").slice(0, 34), layout.width / 2, 62);
-  context.font = "800 19px Nunito, Segoe UI, sans-serif";
+  context.font = "800 19px Helvetica Neue, Arial, sans-serif";
   context.fillText("HOST + GUEST · FOUR SHARED MOMENTS", layout.width / 2, 119);
   if (text.logoSource) {
     const logo = await loadImage(text.logoSource);
@@ -56,7 +56,7 @@ export async function drawCombinedStrip(
 
   const date = new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(new Date());
   context.fillStyle = theme.foreground;
-  context.font = "700 22px Nunito, Segoe UI, sans-serif";
+  context.font = "700 22px Helvetica Neue, Arial, sans-serif";
   context.fillText((text.caption || `JOYSHOT · ${date.toUpperCase()}`).slice(0, 64), layout.width / 2, layout.height - 51);
   return canvas.toDataURL("image/png");
 }
