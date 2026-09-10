@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { Analytics } from "@vercel/analytics/next";
 import { PwaClient } from "@/components/pwa/PwaClient";
 import "./globals.css";
 
@@ -29,7 +30,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}<PwaClient /></body>
+      <body>
+        {children}
+        <PwaClient />
+        <Analytics />
+      </body>
     </html>
   );
 }
